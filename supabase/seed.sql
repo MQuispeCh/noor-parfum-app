@@ -1,9 +1,10 @@
 -- Noor Parfum · datos iniciales (copiados del Excel al 07/11/2026)
--- Ejecutar después de schema.sql. Reemplaza los correos y nombres de los dueños.
+-- Ejecutar después de schema.sql. Dueños ya configurados.
 
 insert into public.duenos (email, nombre) values
-  ('CORREO-DE-JESUS@ejemplo.com', 'Jesús'),
-  ('CORREO-DEL-SOCIO@ejemplo.com', 'Socio')
+  ('mq77357@gmail.com', 'Jesús')
+  -- Para agregar a tu socio, cambia la línea de arriba por:
+  -- ('mq77357@gmail.com', 'Jesús'), ('CORREO-DEL-SOCIO', 'Nombre del socio')
 on conflict (email) do update set nombre = excluded.nombre;
 
 insert into public.productos (id, data) values
