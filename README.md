@@ -12,21 +12,24 @@ y solo pueden entrar los dueños con su correo y contraseña.
 
 | Archivo | Para qué sirve |
 |---|---|
-| `index.html` | La app completa: login, Resumen, Inventario, Ventas, Por cobrar, Compras e Instrucciones |
+| `index.html` | Estructura y estilos: login, Resumen, Inventario, Ventas, Separados, Por cobrar, Gastos, Compras, Socios e Instrucciones |
 | `config.js` | URL y llave pública de Supabase |
 | `manifest.webmanifest`, `icons/` | Ícono y nombre al instalarla en el celular |
 | `supabase/schema.sql` | Tablas y reglas de seguridad (solo dueños) |
 | `supabase/seed.sql` | Datos iniciales copiados del Excel al 07/11/2026 |
+| `supabase/002_gastos_separados_socios.sql` | Tablas de gastos, separados y cuentas entre socios |
+| `app.js` | Lógica de la app |
 
 ## Puesta en marcha (una sola vez)
 
 ### 1. Supabase
 1. Crea una cuenta en supabase.com (puedes entrar con tu cuenta de GitHub) y un proyecto nuevo, región **South America (São Paulo)**.
 2. En **SQL Editor**, pega y ejecuta `supabase/schema.sql`.
-3. Abre `supabase/seed.sql`, cambia los dos correos y nombres de los dueños y ejecútalo.
-4. En **Authentication › Sign In / Providers**, desactiva **Allow new users to sign up**.
-5. En **Authentication › Users › Add user › Create new user**, crea un usuario por dueño con su correo y una contraseña (marca *Auto Confirm User*).
-6. En **Project Settings › API** copia **Project URL** y la **Publishable key** y ponlos en `config.js` (ya configurado).
+3. Ejecuta `supabase/002_gastos_separados_socios.sql`.
+4. Abre `supabase/seed.sql`, cambia los dos correos y nombres de los dueños y ejecútalo.
+5. En **Authentication › Sign In / Providers**, desactiva **Allow new users to sign up**.
+6. En **Authentication › Users › Add user › Create new user**, crea un usuario por dueño con su correo y una contraseña (marca *Auto Confirm User*).
+7. En **Project Settings › API** copia **Project URL** y la **Publishable key** y ponlos en `config.js` (ya configurado).
 
 ### 2. GitHub Pages
 1. Sube esta carpeta a un repositorio (por ejemplo `noor-parfum-app`).
