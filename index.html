@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Noor Parfum">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>Noor Parfum Control</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@500;600;700&family=Montserrat:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: sticky brand bar + section tabs, then one working view per tab (cards on phone, tables on desktop). Dark-first in the Noor black/gold identity. */
+:root{
+  --bg:#0b0b0d; --glow:#2a2116; --panel:#141210; --panel2:#1d1a16; --line:#3a3226; --fg:#f7f1e6; --muted:#a89d8a;
+  --gold:#d4af7c; --gold2:#ecd5a8; --gold3:#a8824c; --gold-ink:#16110a; --ok:#86c7a0; --warn:#e8b45a; --bad:#e57a6b;
+  --display:"Playfair Display",Georgia,serif; --body:"Montserrat",system-ui,-apple-system,sans-serif; --script:"Great Vibes","Snell Roundhand",cursive;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
+  --bg:#f7f1e6; --glow:#ecdcbc; --panel:#fffcf6; --panel2:#f1e8d8; --line:#e0d1b6; --fg:#1b1710; --muted:#6f6552;
+  --gold:#9a7337; --gold2:#c9a46c; --gold3:#7d5a26; --gold-ink:#fffaf0; --ok:#2f7d4f; --warn:#a86b0f; --bad:#b4402f; color-scheme:light}}
+:root[data-theme="light"]{
+  --bg:#f7f1e6; --glow:#ecdcbc; --panel:#fffcf6; --panel2:#f1e8d8; --line:#e0d1b6; --fg:#1b1710; --muted:#6f6552;
+  --gold:#9a7337; --gold2:#c9a46c; --gold3:#7d5a26; --gold-ink:#fffaf0; --ok:#2f7d4f; --warn:#a86b0f; --bad:#b4402f; color-scheme:light}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+img{max-width:100%}
+body{background:radial-gradient(1100px 520px at 50% -120px,var(--glow),transparent 70%) no-repeat,var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.45;margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px)}
+header::after{content:"";display:block;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px 4px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand img{width:44px;height:auto}
+.wm{font-family:var(--display);font-size:22px;font-weight:600;letter-spacing:.2em;line-height:1}
+.wm small{display:block;font-family:var(--body);font-size:9px;font-weight:600;letter-spacing:.62em;color:var(--gold);margin-top:5px}
+.slogan{font-family:var(--script);font-size:24px;color:var(--gold);line-height:1}
+.who{font-size:12px;color:var(--muted);text-align:right}
+nav{display:flex;gap:4px;overflow-x:auto;padding-block:6px 8px;scrollbar-width:none}
+nav a{flex:none;padding:8px 14px;border-radius:999px;color:var(--muted);text-decoration:none;font-weight:600;font-size:13px}
+nav a.on{background:linear-gradient(135deg,var(--gold2),var(--gold) 55%,var(--gold3));color:var(--gold-ink);box-shadow:0 2px 10px color-mix(in srgb,var(--gold) 30%,transparent)}
+nav a:not(.on):hover{color:var(--gold)}
+nav a .n{display:inline-block;min-width:18px;margin-left:6px;padding:0 5px;border-radius:9px;background:var(--bad);color:#fff;font-size:11px;text-align:center}
+main{padding-block:18px 60px}
+.eyebrow{font-size:10px;font-weight:600;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+h2{font-family:var(--display);font-weight:600;font-size:28px;margin:0;text-wrap:balance}
+.head{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px;margin-bottom:14px}
+.sub{color:var(--muted);font-size:13px;margin-top:2px}
+.btn{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--panel2);color:var(--fg);padding:9px 14px;border-radius:10px;cursor:pointer}
+.btn.pri{background:linear-gradient(135deg,var(--gold2),var(--gold) 55%,var(--gold3));border-color:var(--gold3);color:var(--gold-ink)}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn.danger{color:var(--bad)}
+.btn:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;position:relative;overflow:hidden}
+.kpi::before{content:"";position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,var(--gold3),var(--gold2),var(--gold3));opacity:.7}
+.kpi .l{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+.kpi .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
+.kpi .d{font-size:12px;color:var(--muted)}
+.kpi.hl{border-color:var(--gold3)}
+.kpi.hl .v{color:var(--gold)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:14px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;min-width:0}
+.box h3{margin:0 0 10px;font-family:var(--display);font-size:17px;font-weight:600;color:var(--fg)}
+.box h3::before{content:"✦";color:var(--gold);font-size:12px;margin-right:8px;vertical-align:2px}
+.tblw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;font-weight:600;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.r,th.r{text-align:right;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.03em;white-space:nowrap}
+.p-ok{background:color-mix(in srgb,var(--ok) 20%,transparent);color:var(--ok)}
+.p-warn{background:color-mix(in srgb,var(--warn) 22%,transparent);color:var(--warn)}
+.p-bad{background:color-mix(in srgb,var(--bad) 20%,transparent);color:var(--bad)}
+.p-mu{background:var(--panel2);color:var(--muted)}
+.muted{color:var(--muted)}
+.small{font-size:12px}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+input,select,textarea{font:inherit;color:var(--fg);background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px 10px;width:100%;min-width:0}
+.tools input{max-width:260px}.tools select{width:auto}
+.bars{display:grid;gap:8px}
+.barrow{display:grid;grid-template-columns:70px 1fr 90px;gap:8px;align-items:center;font-size:12px;font-variant-numeric:tabular-nums}
+.track{height:12px;background:var(--panel2);border-radius:6px;overflow:hidden;position:relative}
+.track i{position:absolute;inset:0 auto 0 0;background:var(--gold);border-radius:6px}
+.track b{position:absolute;inset:0 auto 0 0;background:var(--ok);border-radius:6px;opacity:.85}
+.list{display:grid;gap:8px}
+.item{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item>div{min-width:0}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+.note{background:color-mix(in srgb,var(--gold) 12%,var(--panel));border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:14px}
+/* sheet */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+@media (min-width:700px){.ov{align-items:center}}
+.sheet{background:var(--panel);border:1px solid var(--line);border-radius:16px 16px 0 0;width:min(560px,100%);max-height:92vh;overflow:auto;padding:18px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+@media (min-width:700px){.sheet{border-radius:16px}}
+.sheet{border-top:2px solid var(--gold)}
+.sheet h3{font-family:var(--display);font-size:22px;margin:0 0 12px;font-weight:600}
+.f{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.f label{display:grid;gap:4px;font-size:12px;color:var(--muted);font-weight:600;min-width:0}
+.f .full{grid-column:1/-1}
+.tot{display:flex;justify-content:space-between;align-items:baseline;padding:10px 12px;background:var(--panel2);border-radius:10px;margin-top:10px}
+.tot b{font-size:20px;font-variant-numeric:tabular-nums}
+.acts{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;flex-wrap:wrap}
+.err{color:var(--bad);font-size:12px;margin-top:8px;min-height:1em}
+.irow{display:grid;grid-template-columns:1fr 70px auto auto;gap:6px;align-items:center;margin-bottom:6px}
+.chk{display:flex!important;align-items:center;gap:4px;font-size:12px;white-space:nowrap}
+.chk input{width:auto}
+footer{text-align:center;padding-block:10px 40px;color:var(--muted);font-size:12px}
+footer .slogan{display:block;font-size:30px;margin-bottom:6px}
+.boot{display:grid;justify-items:center;gap:10px;padding:60px 0;text-align:center;color:var(--muted)}
+.boot img{width:70px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--gold);color:var(--gold-ink);padding:10px 16px;border-radius:10px;font-weight:600;z-index:30}
+@media (max-width:640px){
+  .hide-m{display:none}
+  .bar .slogan{display:none}
+  h2{font-size:24px}
+  .f{grid-template-columns:1fr}
+  .kpi .v{font-size:19px}
+}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(16px);opacity:.6}}}
+.login{max-width:380px;margin:0 auto;padding-block:8vh 40px;display:grid;gap:14px;text-align:center}
+.login img{width:90px;margin:0 auto}
+.login .wm{font-size:30px}
+.login form{display:grid;gap:10px;text-align:left;margin-top:10px}
+.login label{display:grid;gap:4px;font-size:12px;font-weight:600;color:var(--muted)}
+.out{background:none;border:0;color:var(--muted);font:inherit;font-size:12px;cursor:pointer;text-decoration:underline;padding:0}
+.ins{display:grid;gap:14px}
+.ins ol,.ins ul{margin:6px 0 0;padding-left:20px;display:grid;gap:6px}
+.ins p{margin:6px 0 0;max-width:68ch}
+</style>
+</head>
+<body>
+<div id="loginView" class="wrap" hidden><div class="login">
+  <img src="icons/logo.png" alt="Noor Parfum">
+  <div class="wm">NOOR<small>PARFUM</small></div>
+  <div class="slogan">Deja que tu esencia hable</div>
+  <form id="lf"><label>Correo<input id="l-e" type="email" autocomplete="username" required></label>
+  <label>Contraseña<input id="l-p" type="password" autocomplete="current-password" required></label>
+  <button class="btn pri" id="l-b" type="submit">Ingresar</button><div class="err" id="l-err"></div></form>
+  <div class="small muted">Solo para los dueños de Noor Parfum.</div>
+</div></div>
+<div id="appView" hidden>
+<header><div class="wrap">
+  <div class="bar"><div class="brand"><img src="icons/logo.png" alt="Noor Parfum"><div class="wm">NOOR<small>PARFUM</small></div></div><div class="slogan">Deja que tu esencia hable</div><div class="who"><div id="who"></div><button class="out" id="logout">Cerrar sesión</button></div></div>
+  <nav id="nav">
+    <a href="#resumen" data-v="resumen">Resumen</a>
+    <a href="#inventario" data-v="inventario">Inventario</a>
+    <a href="#ventas" data-v="ventas">Ventas</a>
+    <a href="#cobranza" data-v="cobranza">Por cobrar</a>
+    <a href="#compras" data-v="compras">Compras</a>
+    <a href="#instrucciones" data-v="instrucciones">Instrucciones</a>
+  </nav>
+</div></header>
+<main class="wrap" id="main"><div class="boot" id="boot"><img src="icons/logo.png" alt=""><div>Cargando tu inventario…</div><div class="small">Productos, ventas y compras aparecerán aquí en unos segundos.</div></div></main>
+<footer class="wrap"><span class="slogan">Deja que tu esencia hable</span>Noor Parfum · Guadalupe y Chepén · WhatsApp 926 252 995 · @noorparfum_guadalupe</footer>
+</div>
+<div id="modal"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+</body>
+</html>
+<script src="config.js"></script>
+
+<script>
+const S={prod:{},mov:[],comp:[],ready:{p:0,m:0,c:0},canWrite:true,sb:null,email:null,names:{},view:'resumen',q:'',fcat:'',fstock:''};
+const PEN=n=>'S/ '+(Math.round((+n||0)*100)/100).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const PEN0=n=>'S/ '+Math.round(+n||0).toLocaleString('es-PE');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const fdate=s=>{if(!s)return'';const [y,m,d]=s.split('-');return d+'/'+m+'/'+y.slice(2)};
+const MES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Set','Oct','Nov','Dic'];
+const SALIDA={'Venta':1,'Obsequio':1,'Decants (frasco abierto)':1,'Otra salida':1,'Devolución':-1};
+
+function calc(){
+  const P={};
+  for(const [id,p] of Object.entries(S.prod)) P[id]={...p,id,comprado:0,inv:0,vendido:0,devuelto:0,otras:0,ingresos:0,costoVend:0};
+  for(const c of S.comp){
+    const total=(+c.monto||0)+(+c.envio||0);
+    const items=c.items||[];
+    const W=items.reduce((s,it)=>s+(it.regalo?0:(+it.precioRef||+(P[it.codigo]?.precio)||0)*(+it.cant||0)),0);
+    for(const it of items){const p=P[it.codigo];if(!p)continue;const w=it.regalo?0:(+it.precioRef||+p.precio||0)*(+it.cant||0);p.comprado+=+it.cant||0;p.inv+=W>0?total*w/W:0}
+  }
+  for(const p of Object.values(P)) p.costo=p.comprado?p.inv/p.comprado:0;
+  for(const m of S.mov){const p=P[m.codigo];if(!p)continue;const q=+m.cant||0;
+    if(m.tipo==='Venta'){p.vendido+=q;p.ingresos+=+m.total||0;p.costoVend+=q*(m.costoUnit??p.costo)}
+    else if(m.tipo==='Devolución'){p.devuelto+=q;p.ingresos-=+m.total||0;p.costoVend-=q*(m.costoUnit??p.costo)}
+    else p.otras+=q;}
+  for(const p of Object.values(P)){p.stock=p.comprado-p.vendido-p.otras+p.devuelto;
+    p.estado=p.stock<=0?(p.comprado?'AGOTADO':'SIN STOCK'):p.stock<=(+p.stockMin||1)?'STOCK BAJO':'DISPONIBLE'}
+  return P;
+}
+function totals(P){
+  const inv=S.comp.reduce((s,c)=>s+(+c.monto||0)+(+c.envio||0),0);
+  let ing=0,costo=0,cobrado=0,porCobrar=0,uds=0,stockU=0,stockV=0,stockC=0;
+  for(const m of S.mov){if(m.tipo==='Venta'){ing+=+m.total||0;cobrado+=Math.min(+m.pagado||0,+m.total||0);porCobrar+=Math.max(0,(+m.total||0)-(+m.pagado||0));uds+=+m.cant||0}
+    if(m.tipo==='Devolución'){ing-=+m.total||0}}
+  for(const p of Object.values(P)){costo+=p.costoVend;if(p.stock>0){stockU+=p.stock;stockV+=p.stock*(+p.precio||0);stockC+=p.stock*p.costo}}
+  return{inv,ing,costo,gan:ing-costo,cobrado,porCobrar,uds,stockU,stockV,stockC};
+}
+function pill(e){return `<span class="pill ${e==='DISPONIBLE'?'p-ok':e==='STOCK BAJO'?'p-warn':'p-bad'}">${e}</span>`}
+function payPill(m){if(m.tipo!=='Venta')return `<span class="pill p-mu">${esc(m.tipo)}</span>`;const s=(+m.total||0)-(+m.pagado||0);
+  return s<=0.005?`<span class="pill p-ok">Pagado</span>`:(+m.pagado>0?`<span class="pill p-warn">Debe ${PEN(s)}</span>`:`<span class="pill p-bad">Debe ${PEN(s)}</span>`)}
+function sortedMov(){return [...S.mov].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')||(b.creado||0)-(a.creado||0))}
+function who(e){return e?(S.names[e]||e):''}
+
+function render(){
+  const ok=S.ready.p&&S.ready.m&&S.ready.c; if(!ok) return;
+  const P=calc(),T=totals(P);
+  const debts=S.mov.filter(m=>m.tipo==='Venta'&&(+m.total||0)-(+m.pagado||0)>0.005);
+  document.querySelectorAll('#nav a').forEach(a=>{a.classList.toggle('on',a.dataset.v===S.view);
+    if(a.dataset.v==='cobranza')a.innerHTML='Por cobrar'+(debts.length?`<span class="n">${debts.length}</span>`:'')});
+  const ro=S.canWrite?'':'<div class="note">Solo puedes ver los datos. Para registrar ventas o compras pide al dueño que te dé acceso de Colaborador.</div>';
+  const v={resumen,inventario,ventas,cobranza,compras,instrucciones}[S.view]||resumen;
+  document.getElementById('main').innerHTML=ro+v(P,T,debts);
+  bind();
+}
+function resumen(P,T,debts){
+  const recup=T.inv?T.cobrado/T.inv:0;
+  const low=Object.values(P).filter(p=>p.comprado&&p.stock<=(+p.stockMin||1)).sort((a,b)=>a.stock-b.stock);
+  const byM={};for(const m of S.mov){if(m.tipo!=='Venta'&&m.tipo!=='Devolución')continue;const k=(m.fecha||'').slice(0,7);const sg=m.tipo==='Venta'?1:-1;const p=P[m.codigo];
+    byM[k]=byM[k]||{i:0,g:0};byM[k].i+=sg*(+m.total||0);byM[k].g+=sg*((+m.total||0)-(+m.cant||0)*(m.costoUnit??p?.costo??0))}
+  const ks=Object.keys(byM).sort().slice(-6);const mx=Math.max(1,...ks.map(k=>byM[k].i));
+  const bars=ks.length?ks.map(k=>{const [y,mm]=k.split('-');return `<div class="barrow"><span>${MES[+mm-1]} ${y.slice(2)}</span><div class="track"><i style="width:${byM[k].i/mx*100}%"></i><b style="width:${Math.max(0,byM[k].g)/mx*100}%"></b></div><span style="text-align:right">${PEN0(byM[k].i)}</span></div>`}).join('')+'<div class="small muted" style="margin-top:4px"><span style="color:var(--gold)">■</span> Ingresos &nbsp; <span style="color:var(--ok)">■</span> Ganancia</div>':'<div class="empty">Aún no hay ventas registradas.</div>';
+  const rec=sortedMov().slice(0,6).map(m=>`<div class="item"><div><b>${esc(P[m.codigo]?.nombre||m.codigo)}</b><div class="small muted">${fdate(m.fecha)} · ${esc(m.cliente||'—')}${m.cant>1?' · '+m.cant+' und':''}</div></div><div style="text-align:right"><div>${m.tipo==='Venta'?PEN(m.total):''}</div>${payPill(m)}</div></div>`).join('')||'<div class="empty">Sin movimientos todavía.</div>';
+  return `<div class="head"><div><div class="eyebrow">Noor Parfum</div><h2>Resumen del negocio</h2><div class="sub">Se actualiza solo cuando tú o tu socio registran algo.</div></div>${S.canWrite?'<button class="btn pri" data-a="venta">+ Registrar venta</button>':''}</div>
+  <div class="kpis">
+   <div class="kpi"><div class="l">Inversión</div><div class="v">${PEN0(T.inv)}</div><div class="d">${S.comp.length} compras</div></div>
+   <div class="kpi"><div class="l">Vendido</div><div class="v">${PEN0(T.ing)}</div><div class="d">${T.uds} unidades</div></div>
+   <div class="kpi hl"><div class="l">Ganancia</div><div class="v">${PEN0(T.gan)}</div><div class="d">${T.ing?Math.round(T.gan/T.ing*100):0}% de lo vendido</div></div>
+   <div class="kpi"><div class="l">Cobrado</div><div class="v">${PEN0(T.cobrado)}</div><div class="d">Recuperado ${Math.round(recup*100)}% de la inversión</div></div>
+   <div class="kpi"><div class="l">Por cobrar</div><div class="v" style="color:${T.porCobrar?'var(--bad)':'inherit'}">${PEN0(T.porCobrar)}</div><div class="d">${debts.length} venta${debts.length===1?'':'s'} pendiente${debts.length===1?'':'s'}</div></div>
+   <div class="kpi"><div class="l">Stock</div><div class="v">${T.stockU} und</div><div class="d">Vale ${PEN0(T.stockV)} a precio de venta</div></div>
+  </div>
+  <div class="grid2">
+   <div class="box"><h3>Ventas por mes</h3><div class="bars">${bars}</div></div>
+   <div class="box"><h3>Últimos movimientos</h3>${rec}</div>
+   <div class="box"><h3>Reponer pronto (${low.length})</h3>${low.length?low.map(p=>`<div class="item"><div>${esc(p.nombre)}<div class="small muted">${esc(p.marca)}</div></div><div>${pill(p.estado)} <span class="small muted">${p.stock} und</span></div></div>`).join(''):'<div class="empty">Todo con stock suficiente.</div>'}</div>
+  </div>`;
+}
+function inventario(P){
+  let L=Object.values(P).sort((a,b)=>a.id.localeCompare(b.id));
+  const q=S.q.toLowerCase();if(q)L=L.filter(p=>(p.nombre+' '+p.marca).toLowerCase().includes(q));
+  if(S.fcat)L=L.filter(p=>p.categoria===S.fcat);
+  if(S.fstock==='con')L=L.filter(p=>p.stock>0);if(S.fstock==='sin')L=L.filter(p=>p.stock<=0);
+  const cats=[...new Set(Object.values(P).map(p=>p.categoria))].sort();
+  const rows=L.map(p=>`<tr><td class="hide-m muted">${esc(p.id)}</td><td><b>${esc(p.nombre)}</b><div class="small muted">${esc(p.marca)} · ${esc(p.para||'')}${p.ml?' · '+p.ml+' ml':''}</div></td>
+   <td class="r"><b>${p.stock}</b><div class="small muted hide-m">de ${p.comprado}</div></td><td>${pill(p.estado)}</td>
+   <td class="r">${PEN(p.precio)}</td><td class="r hide-m">${PEN(p.costo)}</td><td class="r hide-m">${p.precio?Math.round((p.precio-p.costo)/p.precio*100)+'%':'—'}</td>
+   <td class="r hide-m">${PEN(p.ingresos)}</td><td class="r">${S.canWrite?`<button class="btn sm" data-a="editp" data-id="${esc(p.id)}">Editar</button>`:''}</td></tr>`).join('');
+  return `<div class="head"><div><div class="eyebrow">Noor Parfum</div><h2>Inventario</h2><div class="sub">${L.length} productos · el costo se reparte por pack según el precio de venta</div></div>${S.canWrite?'<button class="btn" data-a="newp">+ Nuevo producto</button>':''}</div>
+  <div class="tools"><input id="q" type="search" placeholder="Buscar perfume o marca" value="${esc(S.q)}">
+   <select id="fcat"><option value="">Todas las categorías</option>${cats.map(c=>`<option ${S.fcat===c?'selected':''}>${esc(c)}</option>`).join('')}</select>
+   <select id="fstock"><option value="">Todo</option><option value="con" ${S.fstock==='con'?'selected':''}>Con stock</option><option value="sin" ${S.fstock==='sin'?'selected':''}>Sin stock</option></select></div>
+  <div class="box tblw"><table><thead><tr><th class="hide-m">Cód.</th><th>Producto</th><th class="r">Stock</th><th>Estado</th><th class="r">Precio</th><th class="r hide-m">Costo</th><th class="r hide-m">Margen</th><th class="r hide-m">Vendido</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="9" class="empty">Ningún producto coincide.</td></tr>'}</tbody></table></div>`;
+}
+function ventas(P){
+  const L=sortedMov();
+  const rows=L.map(m=>{const p=P[m.codigo];const g=m.tipo==='Venta'?(+m.total||0)-(+m.cant||0)*(m.costoUnit??p?.costo??0):null;
+   return `<tr><td class="muted">${fdate(m.fecha)}</td><td><b>${esc(p?.nombre||m.codigo)}</b>${m.cant>1?` <span class="muted">×${m.cant}</span>`:''}<div class="small muted">${esc(m.cliente||'—')} · ${esc(m.canal||'')} · ${esc(m.pago||'')}${m.notas?'<br>'+esc(m.notas):''}${who(m.por)?'<br>Registró: '+esc(who(m.por)):''}</div></td>
+   <td class="r">${m.tipo==='Venta'||m.tipo==='Devolución'?PEN(m.total):'—'}${+m.descuento?`<div class="small muted">dscto ${PEN(m.descuento)}</div>`:''}</td><td class="r hide-m">${g==null?'—':PEN(g)}</td><td>${payPill(m)}</td>
+   <td class="r">${S.canWrite?`<button class="btn sm danger" data-a="delm" data-id="${esc(m.id)}">Borrar</button>`:''}</td></tr>`}).join('');
+  return `<div class="head"><div><div class="eyebrow">Noor Parfum</div><h2>Ventas y salidas</h2><div class="sub">Ventas, obsequios, frascos abiertos para decants y devoluciones</div></div>${S.canWrite?'<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-a="salida">+ Otra salida</button><button class="btn pri" data-a="venta">+ Registrar venta</button></div>':''}</div>
+  <div class="box tblw"><table><thead><tr><th>Fecha</th><th>Detalle</th><th class="r">Total</th><th class="r hide-m">Ganancia</th><th>Pago</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="empty">Aún no hay ventas. Registra la primera con el botón de arriba.</td></tr>'}</tbody></table></div>`;
+}
+function cobranza(P,T,debts){
+  const byC={};for(const m of debts){const k=(m.cliente||'Sin nombre').trim();(byC[k]=byC[k]||[]).push(m)}
+  const blocks=Object.entries(byC).sort((a,b)=>b[1].reduce((s,m)=>s+m.total-m.pagado,0)-a[1].reduce((s,m)=>s+m.total-m.pagado,0)).map(([c,ms])=>{
+    const tot=ms.reduce((s,m)=>s+(+m.total||0)-(+m.pagado||0),0);
+    return `<div class="box"><div class="item" style="padding-top:0"><div><b style="font-size:16px">${esc(c)}</b><div class="small muted">${ms.length} venta${ms.length>1?'s':''}</div></div><div style="text-align:right"><div class="small muted">Debe</div><b style="font-size:18px;color:var(--bad)">${PEN(tot)}</b></div></div>
+    ${ms.map(m=>`<div class="item"><div>${esc(P[m.codigo]?.nombre||m.codigo)}<div class="small muted">${fdate(m.fecha)} · total ${PEN(m.total)}${+m.pagado?' · abonó '+PEN(m.pagado):''}</div></div><div>${S.canWrite?`<button class="btn sm pri" data-a="abono" data-id="${esc(m.id)}">Registrar pago</button>`:''}</div></div>`).join('')}</div>`}).join('');
+  return `<div class="head"><div><div class="eyebrow">Noor Parfum</div><h2>Por cobrar</h2><div class="sub">Ventas a crédito o con pago pendiente</div></div><div class="kpi" style="padding:8px 14px"><div class="l">Total pendiente</div><div class="v" style="font-size:20px;color:${T.porCobrar?'var(--bad)':'inherit'}">${PEN(T.porCobrar)}</div></div></div>
+  ${blocks?`<div class="grid2">${blocks}</div>`:'<div class="box empty">Nadie te debe. Las ventas que no se paguen completas aparecerán aquí.</div>'}`;
+}
+function compras(P){
+  const L=[...S.comp].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')||(b.nombre||'').localeCompare(a.nombre||''));
+  const rows=L.map(c=>{const n=(c.items||[]).reduce((s,i)=>s+(+i.cant||0),0);
+   return `<tr><td class="muted">${fdate(c.fecha)}</td><td><b>${esc(c.nombre)}</b><div class="small muted">${esc(c.proveedor||'')} · ${(c.items||[]).map(i=>esc(P[i.codigo]?.nombre||i.codigo)+(i.cant>1?' ×'+i.cant:'')+(i.regalo?' (regalo)':'')).join(', ')}</div></td>
+   <td class="r">${n}</td><td class="r">${PEN(c.monto)}${+c.envio?`<div class="small muted">+ envío ${PEN(c.envio)}</div>`:''}</td><td class="r">${S.canWrite?`<button class="btn sm danger" data-a="delc" data-id="${esc(c.id)}">Borrar</button>`:''}</td></tr>`}).join('');
+  const inv=S.comp.reduce((s,c)=>s+(+c.monto||0)+(+c.envio||0),0);
+  return `<div class="head"><div><div class="eyebrow">Noor Parfum</div><h2>Compras</h2><div class="sub">Inversión total ${PEN(inv)} · cada pack reparte su costo entre lo que trajo</div></div>${S.canWrite?'<button class="btn pri" data-a="compra">+ Registrar compra</button>':''}</div>
+  <div class="box tblw"><table><thead><tr><th>Fecha</th><th>Compra / pack</th><th class="r">Und</th><th class="r">Pagado</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="empty">Sin compras registradas.</td></tr>'}</tbody></table></div>`;
+}
+
+function instrucciones(){
+  return `<div class="head"><div><div class="eyebrow">Noor Parfum</div><h2>Instrucciones</h2><div class="sub">Cómo usar la app día a día</div></div></div>
+  <div class="ins grid2">
+   <div class="box"><h3>Registrar una venta</h3><ol><li>Toca <b>+ Registrar venta</b> (en Resumen o en Ventas).</li><li>Elige el perfume. El precio se llena solo; puedes cambiarlo.</li><li>Si hiciste descuento, escribe el monto en soles en <b>Descuento total</b>.</li><li>Pon el cliente, el canal y la forma de pago.</li><li>En <b>¿Cuánto pagó ahora?</b> deja el total si pagó todo. Si es a crédito o pagó una parte, escribe lo que pagó: el resto aparece en <b>Por cobrar</b>.</li><li>Toca <b>Guardar venta</b>. El stock baja solo.</li></ol></div>
+   <div class="box"><h3>Cobrar una deuda</h3><ol><li>Entra a <b>Por cobrar</b>. Las deudas están agrupadas por cliente.</li><li>Toca <b>Registrar pago</b> en la venta que te pagaron.</li><li>Escribe cuánto pagó (puede ser un abono parcial) y cómo pagó.</li></ol><p class="small muted">Cuando el saldo llega a cero, la venta sale de la lista.</p></div>
+   <div class="box"><h3>Obsequios, decants y devoluciones</h3><ul><li><b>Obsequio:</b> un perfume o body spray que regalaste. Baja el stock sin ingreso.</li><li><b>Decants (frasco abierto):</b> cuando abres un frasco para hacer decants. Ese frasco ya no se vende sellado.</li><li><b>Devolución:</b> un cliente devolvió un perfume. Vuelve al stock y se descuenta lo que le devolviste.</li></ul><p class="small muted">Se registran en Ventas › <b>+ Otra salida</b>.</p></div>
+   <div class="box"><h3>Registrar una compra</h3><ol><li>Si llegó un perfume nuevo, créalo primero en <b>Inventario › + Nuevo producto</b> con su precio de venta.</li><li>En <b>Compras › + Registrar compra</b> pon lo que pagaste por el pack y el envío.</li><li>Agrega cada producto que trajo y su cantidad. Marca <b>Regalo</b> en lo que vino gratis.</li><li>Guarda: el stock sube y el costo de cada perfume se calcula solo.</li></ol></div>
+   <div class="box"><h3>Cómo se calcula el costo</h3><p>Cuando compras un pack, lo que pagaste más el envío se reparte entre los perfumes según su precio de venta: el que se vende más caro carga más costo. Los regalos cuestan S/ 0. Si un perfume llegó en varias compras, se usa el costo promedio.</p><p>La ganancia de cada venta es el total cobrado menos ese costo.</p></div>
+   <div class="box"><h3>Precios y stock mínimo</h3><p>En <b>Inventario</b> toca <b>Editar</b> para cambiar el precio de venta o el stock mínimo. Cuando un perfume llega a su stock mínimo aparece en <b>Reponer pronto</b>.</p></div>
+   <div class="box"><h3>Instalar en el celular</h3><ul><li><b>iPhone:</b> abre la app en Safari › botón Compartir › <b>Agregar a pantalla de inicio</b>.</li><li><b>Android:</b> abre la app en Chrome › menú ⋮ › <b>Agregar a la pantalla principal</b> o <b>Instalar app</b>.</li></ul><p class="small muted">Queda con el ícono de Noor Parfum, como una app más.</p></div>
+   <div class="box"><h3>Acceso y seguridad</h3><ul><li>Solo entran los correos registrados como dueños.</li><li>Lo que registra uno lo ve el otro al instante.</li><li>Cada venta guarda quién la registró.</li><li>Si prestas tu celular, toca <b>Cerrar sesión</b> arriba a la derecha.</li></ul></div>
+   <div class="box"><h3>Pedir cambios</h3><p>La app vive en un repositorio de GitHub. Para agregar algo (un reporte, un campo nuevo, otro tipo de producto) pídeselo a Claude: el cambio queda guardado como una versión nueva y se publica solo.</p></div>
+  </div>`;
+}
+/* ---------- forms ---------- */
+let MODAL=null;
+function open(html,onMount){document.getElementById('modal').innerHTML=`<div class="ov" id="ov"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
+  const ov=document.getElementById('ov');ov.addEventListener('click',e=>{if(e.target===ov)close()});ov.querySelectorAll('[data-x]').forEach(b=>b.onclick=close);onMount&&onMount(ov);const f=ov.querySelector('input,select');f&&f.focus()}
+function close(){document.getElementById('modal').innerHTML=''}
+function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
+function prodOpts(P,sel,onlyStock){return Object.values(P).sort((a,b)=>a.nombre.localeCompare(b.nombre)).map(p=>`<option value="${esc(p.id)}" ${p.id===sel?'selected':''} ${onlyStock&&p.stock<=0?'disabled':''}>${esc(p.nombre)} · ${p.stock} und · ${PEN0(p.precio)}</option>`).join('')}
+async function save(fn,okMsg,errEl){try{await fn();close();toast(okMsg);await loadAll()}catch(e){console.error(e);const m=/JWT|auth|permission|row-level/i.test(e?.message||'')?'Tu sesión venció o no tienes permiso. Vuelve a ingresar.':'No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.';if(errEl)errEl.textContent=m;else toast(m)}}
+
+function formVenta(){
+  const P=calc();
+  open(`<h3>Registrar venta</h3><form id="fv" class="f">
+   <label class="full">Producto<select id="v-p" required><option value="">Elige un producto</option>${prodOpts(P,'',true)}</select></label>
+   <label>Cantidad<input id="v-c" type="number" min="1" value="1" required></label>
+   <label>Precio unitario<input id="v-pr" type="number" min="0" step="0.01" required></label>
+   <label>Descuento total (S/)<input id="v-d" type="number" min="0" step="0.01" value="0"></label>
+   <label>Fecha<input id="v-f" type="date" value="${today()}" required></label>
+   <label class="full">Cliente<input id="v-cl" placeholder="Nombre del cliente" autocomplete="off" list="clientes"></label>
+   <datalist id="clientes">${[...new Set(S.mov.map(m=>m.cliente).filter(Boolean))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
+   <label>Canal<select id="v-ca">${['WhatsApp','Instagram','TikTok','Facebook','Tienda / en persona','Página web','Otro'].map(c=>`<option>${c}</option>`).join('')}</select></label>
+   <label>Forma de pago<select id="v-pg">${['Yape','Plin','Efectivo','Transferencia','Tarjeta','Crédito'].map(c=>`<option>${c}</option>`).join('')}</select></label>
+   <label class="full">¿Cuánto pagó ahora? (S/)<input id="v-pa" type="number" min="0" step="0.01"></label>
+   <label class="full">Notas<input id="v-n" placeholder="Opcional"></label>
+   </form><div class="tot"><span class="muted">Total</span><b id="v-t">S/ 0.00</b></div><div class="small muted" id="v-g"></div><div class="err" id="v-e"></div>
+   <div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pri" id="v-s">Guardar venta</button></div>`,ov=>{
+    const $=id=>ov.querySelector('#'+id);let paTouched=false;
+    const upd=()=>{const p=P[$('v-p').value];const t=Math.max(0,(+$('v-c').value||0)*(+$('v-pr').value||0)-(+$('v-d').value||0));$('v-t').textContent=PEN(t);
+      if(!paTouched)$('v-pa').value=$('v-pg').value==='Crédito'?0:t.toFixed(2);
+      $('v-g').textContent=p?`Stock: ${p.stock} und · costo aprox. ${PEN(p.costo)} c/u · ganas ${PEN(t-(+$('v-c').value||0)*p.costo)}`:'';return t};
+    $('v-p').onchange=()=>{const p=P[$('v-p').value];if(p)$('v-pr').value=p.precio;upd()};
+    ['v-c','v-pr','v-d','v-pg'].forEach(i=>$(i).addEventListener('input',upd));$('v-pg').addEventListener('change',()=>{paTouched=false;upd()});
+    $('v-pa').addEventListener('input',()=>paTouched=true);
+    $('v-s').onclick=()=>{const p=P[$('v-p').value];const c=+$('v-c').value||0;const t=upd();
+      if(!p)return $('v-e').textContent='Elige el producto vendido.';
+      if(c<1)return $('v-e').textContent='La cantidad debe ser al menos 1.';
+      if(c>p.stock)return $('v-e').textContent=`Solo quedan ${p.stock} unidades de ${p.nombre}.`;
+      const doc={fecha:$('v-f').value||today(),tipo:'Venta',codigo:p.id,cant:c,precio:+$('v-pr').value||0,descuento:+$('v-d').value||0,total:t,
+        costoUnit:Math.round(p.costo*100)/100,cliente:$('v-cl').value.trim(),canal:$('v-ca').value,pago:$('v-pg').value,pagado:Math.min(t,+$('v-pa').value||0),notas:$('v-n').value.trim(),creado:Date.now(),por:S.email,abonos:[]};
+      save(()=>api.add('movimientos',doc),'Venta guardada',$('v-e'))};
+  });
+}
+function formSalida(){
+  const P=calc();
+  open(`<h3>Otra salida o devolución</h3><form class="f">
+   <label class="full">Tipo<select id="s-t">${['Obsequio','Decants (frasco abierto)','Otra salida','Devolución'].map(c=>`<option>${c}</option>`).join('')}</select></label>
+   <label class="full">Producto<select id="s-p"><option value="">Elige un producto</option>${prodOpts(P,'',false)}</select></label>
+   <label>Cantidad<input id="s-c" type="number" min="1" value="1"></label>
+   <label>Fecha<input id="s-f" type="date" value="${today()}"></label>
+   <label class="full" id="s-mw" hidden>Monto devuelto al cliente (S/)<input id="s-m" type="number" min="0" step="0.01" value="0"></label>
+   <label class="full">Cliente o motivo<input id="s-cl"></label>
+   <label class="full">Notas<input id="s-n"></label></form><div class="err" id="s-e"></div>
+   <div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pri" id="s-s">Guardar</button></div>`,ov=>{
+    const $=id=>ov.querySelector('#'+id);
+    $('s-t').onchange=()=>{$('s-mw').hidden=$('s-t').value!=='Devolución'};
+    $('s-s').onclick=()=>{const p=P[$('s-p').value];const c=+$('s-c').value||0;const t=$('s-t').value;
+      if(!p)return $('s-e').textContent='Elige el producto.';if(c<1)return $('s-e').textContent='La cantidad debe ser al menos 1.';
+      if(t!=='Devolución'&&c>p.stock)return $('s-e').textContent=`Solo quedan ${p.stock} unidades.`;
+      const doc={fecha:$('s-f').value||today(),tipo:t,codigo:p.id,cant:c,precio:+p.precio||0,descuento:0,total:t==='Devolución'?(+$('s-m').value||0):0,costoUnit:Math.round(p.costo*100)/100,
+        cliente:$('s-cl').value.trim(),canal:'',pago:'',pagado:t==='Devolución'?(+$('s-m').value||0):0,notas:$('s-n').value.trim(),creado:Date.now(),por:S.email,abonos:[]};
+      save(()=>api.add('movimientos',doc),'Guardado',$('s-e'))};
+  });
+}
+function formAbono(id){
+  const m=S.mov.find(x=>x.id===id);if(!m)return;const P=calc();const saldo=(+m.total||0)-(+m.pagado||0);
+  open(`<h3>Registrar pago</h3><div class="sub" style="margin-bottom:10px">${esc(m.cliente||'Cliente')} · ${esc(P[m.codigo]?.nombre||'')} · debe ${PEN(saldo)}</div>
+   <form class="f"><label>Monto que pagó (S/)<input id="a-m" type="number" min="0" step="0.01" value="${saldo.toFixed(2)}"></label>
+   <label>Forma de pago<select id="a-p">${['Yape','Plin','Efectivo','Transferencia','Tarjeta'].map(c=>`<option>${c}</option>`).join('')}</select></label>
+   <label>Fecha<input id="a-f" type="date" value="${today()}"></label></form><div class="err" id="a-e"></div>
+   <div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pri" id="a-s">Guardar pago</button></div>`,ov=>{
+    const $=i=>ov.querySelector('#'+i);
+    $('a-s').onclick=()=>{const a=+$('a-m').value||0;if(a<=0)return $('a-e').textContent='Escribe cuánto pagó.';if(a>saldo+0.005)return $('a-e').textContent=`El saldo es ${PEN(saldo)}; el pago no puede ser mayor.`;
+      const ab=[...(m.abonos||[]),{fecha:$('a-f').value||today(),monto:a,metodo:$('a-p').value}];
+      save(()=>api.update('movimientos',id,{pagado:Math.round(((+m.pagado||0)+a)*100)/100,abonos:ab}),a>=saldo-0.005?'Deuda cancelada':'Pago registrado',$('a-e'))};
+  });
+}
+function formProd(id){
+  const p=id?S.prod[id]:null;const ids=Object.keys(S.prod).map(k=>+k.replace(/\D/g,'')||0);const next='P'+String(Math.max(0,...ids)+1).padStart(2,'0');
+  open(`<h3>${p?'Editar producto':'Nuevo producto'}</h3><form class="f">
+   <label class="full">Nombre<input id="p-n" value="${esc(p?.nombre||'')}"></label>
+   <label>Marca<input id="p-m" value="${esc(p?.marca||'')}"></label>
+   <label>Categoría<select id="p-c">${['Perfume','Set','Body spray','Aceite','Decant','Otro'].map(c=>`<option ${p?.categoria===c?'selected':''}>${c}</option>`).join('')}</select></label>
+   <label>Para<select id="p-pa">${['Varones','Damas','Unisex'].map(c=>`<option ${p?.para===c?'selected':''}>${c}</option>`).join('')}</select></label>
+   <label>ml<input id="p-ml" type="number" min="0" value="${esc(p?.ml??100)}"></label>
+   <label>Precio de venta (S/)<input id="p-pr" type="number" min="0" step="0.01" value="${esc(p?.precio??'')}"></label>
+   <label>Stock mínimo<input id="p-sm" type="number" min="0" value="${esc(p?.stockMin??1)}"></label></form><div class="err" id="p-e"></div>
+   <div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pri" id="p-s">Guardar</button></div>`,ov=>{
+    const $=i=>ov.querySelector('#'+i);
+    $('p-s').onclick=()=>{const n=$('p-n').value.trim();if(!n)return $('p-e').textContent='Escribe el nombre del producto.';
+      const d={codigo:id||next,nombre:n,marca:$('p-m').value.trim(),categoria:$('p-c').value,para:$('p-pa').value,ml:+$('p-ml').value||0,precio:+$('p-pr').value||0,stockMin:+$('p-sm').value||0};
+      save(()=>api.set('productos',id||next,d),p?'Producto actualizado':'Producto creado',$('p-e'))};
+  });
+}
+function formCompra(){
+  const P=calc();
+  const row=()=>`<div class="irow"><select class="i-p"><option value="">Producto</option>${prodOpts(P,'',false)}</select><input class="i-c" type="number" min="1" value="1" aria-label="Cantidad"><label class="chk"><input type="checkbox" class="i-r">Regalo</label><button type="button" class="btn sm" data-rm aria-label="Quitar">✕</button></div>`;
+  open(`<h3>Registrar compra</h3><form class="f">
+   <label>Fecha<input id="c-f" type="date" value="${today()}"></label>
+   <label>Nombre del pack o compra<input id="c-n" placeholder="Ej. Pack Sets noviembre"></label>
+   <label>Proveedor<input id="c-pv" value="United Perfumes"></label>
+   <label>Pagaste por los productos (S/)<input id="c-m" type="number" min="0" step="0.01"></label>
+   <label>Envío (S/)<input id="c-e" type="number" min="0" step="0.01" value="0"></label>
+   <div class="full"><div class="small muted" style="font-weight:600;margin-bottom:6px">Qué trajo</div><div id="c-items">${row()}</div>
+   <button type="button" class="btn sm" id="c-add">+ Agregar producto</button>
+   <div class="small muted" style="margin-top:6px">¿No está en la lista? Créalo primero en Inventario › Nuevo producto.</div></div></form>
+   <div class="err" id="c-er"></div><div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pri" id="c-s">Guardar compra</button></div>`,ov=>{
+    const $=i=>ov.querySelector('#'+i);const box=$('c-items');
+    const wire=()=>box.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{if(box.children.length>1)b.parentElement.remove()});wire();
+    $('c-add').onclick=()=>{box.insertAdjacentHTML('beforeend',row());wire()};
+    $('c-s').onclick=()=>{const items=[...box.children].map(r=>({codigo:r.querySelector('.i-p').value,cant:+r.querySelector('.i-c').value||0,regalo:r.querySelector('.i-r').checked})).filter(i=>i.codigo&&i.cant>0)
+      .map(i=>({...i,precioRef:+P[i.codigo].precio||0}));
+      if(!items.length)return $('c-er').textContent='Agrega al menos un producto.';
+      const d={fecha:$('c-f').value||today(),nombre:$('c-n').value.trim()||('Compra '+fdate($('c-f').value)),proveedor:$('c-pv').value.trim(),monto:+$('c-m').value||0,envio:+$('c-e').value||0,items,creado:Date.now(),por:S.email};
+      save(()=>api.add('compras',d),'Compra guardada · stock actualizado',$('c-er'))};
+  });
+}
+function confirmDel(path,label){open(`<h3>¿Borrar?</h3><p>${esc(label)}</p><p class="small muted">El stock y los totales se recalculan. No se puede deshacer.</p><div class="err" id="d-e"></div>
+  <div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pri" id="d-s" style="background:var(--bad);border-color:var(--bad);color:#fff">Borrar</button></div>`,ov=>{
+  ov.querySelector('#d-s').onclick=()=>save(()=>api.del(path.split('/')[0],path.split('/')[1]),'Borrado',ov.querySelector('#d-e'))})}
+
+function bind(){
+  const m=document.getElementById('main');
+  m.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const a=b.dataset.a,id=b.dataset.id;const P=calc();
+    if(a==='venta')formVenta();else if(a==='salida')formSalida();else if(a==='abono')formAbono(id);else if(a==='newp')formProd();else if(a==='editp')formProd(id);else if(a==='compra')formCompra();
+    else if(a==='delm'){const x=S.mov.find(z=>z.id===id);confirmDel('movimientos/'+id,`${x.tipo} de ${P[x.codigo]?.nombre||x.codigo} del ${fdate(x.fecha)}${x.cliente?' a '+x.cliente:''}.`)}
+    else if(a==='delc'){const x=S.comp.find(z=>z.id===id);confirmDel('compras/'+id,`Compra "${x.nombre}" del ${fdate(x.fecha)}. Las unidades que trajo se quitarán del stock.`)}});
+  const q=document.getElementById('q');if(q){q.oninput=()=>{S.q=q.value;const pos=q.selectionStart;render();const n=document.getElementById('q');n.focus();n.setSelectionRange(pos,pos)}}
+  const fc=document.getElementById('fcat');if(fc)fc.onchange=()=>{S.fcat=fc.value;render()};
+  const fs=document.getElementById('fstock');if(fs)fs.onchange=()=>{S.fstock=fs.value;render()};
+}
+function route(){const h=(location.hash||'').slice(1);S.view=['resumen','inventario','ventas','cobranza','compras','instrucciones'].includes(h)?h:'resumen';render();}
+window.addEventListener('hashchange',route);
+
+const TABLES=['productos','movimientos','compras'];
+const api={
+  async add(t,data){const {error}=await S.sb.from(t).insert({data});if(error)throw error},
+  async set(t,id,data){const {error}=await S.sb.from(t).upsert({id,data});if(error)throw error},
+  async update(t,id,patch){const cur=(t==='productos'?S.prod[id]:(t==='movimientos'?S.mov:S.comp).find(x=>x.id===id))||{};const {id:_,...rest}=cur;
+    const {error}=await S.sb.from(t).update({data:{...rest,...patch},actualizado_en:new Date().toISOString()}).eq('id',id);if(error)throw error},
+  async del(t,id){const {error}=await S.sb.from(t).delete().eq('id',id);if(error)throw error}
+};
+async function loadTable(t){
+  const {data,error}=await S.sb.from(t).select('id,data').limit(5000);if(error)throw error;
+  if(t==='productos'){S.prod={};data.forEach(r=>S.prod[r.id]=r.data);S.ready.p=1}
+  else if(t==='movimientos'){S.mov=data.map(r=>({...r.data,id:r.id}));S.ready.m=1}
+  else {S.comp=data.map(r=>({...r.data,id:r.id}));S.ready.c=1}
+}
+async function loadAll(){try{await Promise.all(TABLES.map(loadTable));render()}catch(e){console.error(e);toast('No se pudieron cargar los datos.')}}
+async function loadNames(){const {data}=await S.sb.from('duenos').select('email,nombre');(data||[]).forEach(d=>S.names[d.email]=d.nombre||d.email);
+  document.getElementById('who').textContent=S.names[S.email]||S.email||''}
+let chan=null,timer=null;
+async function enter(session){
+  S.email=session.user.email;
+  document.getElementById('loginView').hidden=true;document.getElementById('appView').hidden=false;
+  timer=setTimeout(()=>{const b=document.getElementById('boot');if(b)b.innerHTML='<img src="icons/logo.png" alt=""><div>No se pudo conectar con los datos todavía.</div><div class="small">Revisa tu conexión a internet.</div>'},10000);
+  await loadNames();await loadAll();clearTimeout(timer);
+  if(!chan){chan=S.sb.channel('noor');TABLES.forEach(t=>chan.on('postgres_changes',{event:'*',schema:'public',table:t},()=>loadTable(t).then(render)));chan.subscribe()}
+}
+function showLogin(){document.getElementById('appView').hidden=true;document.getElementById('loginView').hidden=false;document.getElementById('l-e').focus()}
+(async()=>{
+  if(!window.NOOR_CONFIG||!NOOR_CONFIG.supabaseUrl||NOOR_CONFIG.supabaseUrl.includes('TU-PROYECTO')){
+    document.body.innerHTML='<div class="wrap" style="padding-block:60px;text-align:center">Falta configurar <b>config.js</b> con los datos de Supabase. Revisa el README.</div>';return}
+  S.sb=supabase.createClient(NOOR_CONFIG.supabaseUrl,NOOR_CONFIG.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true}});
+  route();
+  document.getElementById('lf').addEventListener('submit',async e=>{e.preventDefault();const b=document.getElementById('l-b'),er=document.getElementById('l-err');b.disabled=true;er.textContent='';
+    const {data,error}=await S.sb.auth.signInWithPassword({email:document.getElementById('l-e').value.trim(),password:document.getElementById('l-p').value});
+    b.disabled=false;if(error){er.textContent='Correo o contraseña incorrectos.';return}
+    const {data:ok}=await S.sb.from('duenos').select('email').eq('email',data.user.email).maybeSingle();
+    if(!ok){await S.sb.auth.signOut();er.textContent='Este correo no está autorizado como dueño.';return}
+    enter(data.session)});
+  document.getElementById('logout').onclick=async()=>{await S.sb.auth.signOut();if(chan){S.sb.removeChannel(chan);chan=null}location.reload()};
+  const {data:{session}}=await S.sb.auth.getSession();
+  if(session)enter(session);else showLogin();
+})();
+</script>
+</body>
+</html>
