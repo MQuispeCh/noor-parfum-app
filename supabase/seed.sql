@@ -2,9 +2,8 @@
 -- Ejecutar después de schema.sql. Dueños ya configurados.
 
 insert into public.duenos (email, nombre) values
-  ('mq77357@gmail.com', 'Jesús')
-  -- Para agregar a tu socio, cambia la línea de arriba por:
-  -- ('mq77357@gmail.com', 'Jesús'), ('CORREO-DEL-SOCIO', 'Nombre del socio')
+  ('mq77357@gmail.com', 'Jesús'),
+  ('jaimepretellquispe@gmail.com', 'Jaime')
 on conflict (email) do update set nombre = excluded.nombre;
 
 insert into public.productos (id, data) values
