@@ -6,6 +6,7 @@ const S={prod:{},mov:[],comp:[],gastos:[],sep:[],smov:[],ajustes:{},ready:{},sb:
 const VIEWS=['resumen','inventario','ventas','separados','cobranza','gastos','compras','socios','instrucciones'];
 const NEGOCIO_WA='926 252 995';
 const SIN='Sin asignar';
+const CAJA='Cuenta del negocio',AMBOS='Ambos (50/50)';
 
 /* ---------- utilidades ---------- */
 const PEN=n=>'S/ '+(Math.round((+n||0)*100)/100).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -20,11 +21,13 @@ const GASTO_CAT=['Publicidad','Envíos y delivery','Empaques y bolsas','Frascos 
 const socios=()=>{const n=[...new Set(Object.values(S.names))].filter(Boolean);return n.length?n:['Jesús']};
 const yo=()=>S.names[S.email]||socios()[0];
 const socioOpts=(sel,extra)=>[...socios(),...(extra||[])].map(n=>`<option ${n===sel?'selected':''}>${esc(n)}</option>`).join('');
+const cajaOpts=sel=>`<option ${!sel||sel===CAJA?'selected':''}>${CAJA}</option>`+socioOpts(sel,[]);
+const payOpts=sel=>`<option ${!sel||sel===CAJA?'selected':''}>${CAJA}</option><option ${sel===AMBOS?'selected':''}>${AMBOS}</option>`+socioOpts(sel,[]);
 function waLink(tel,txt){const d=String(tel||'').replace(/\D/g,'');const num=d?(d.length===9?'51'+d:d):'';return `https://wa.me/${num}?text=${encodeURIComponent(txt)}`}
 
 /* cobros: cada entrada {fecha,monto,metodo,recibio}. Ventas antiguas solo tenían "pagado". */
 function cobrosOf(m){if(Array.isArray(m.cobros))return m.cobros;const c=[];const ab=m.abonos||[];const ini=(+m.pagado||0)-ab.reduce((s,a)=>s+(+a.monto||0),0);
-  if(ini>0.005)c.push({fecha:m.fecha,monto:ini,metodo:m.pago,recibio:m.recibio||SIN});ab.forEach(a=>c.push({fecha:a.fecha,monto:+a.monto||0,metodo:a.metodo,recibio:a.recibio||SIN}));return c}
+  if(ini>0.005)c.push({fecha:m.fecha,monto:ini,metodo:m.pago,recibio:m.recibio||CAJA});ab.forEach(a=>c.push({fecha:a.fecha,monto:+a.monto||0,metodo:a.metodo,recibio:a.recibio||CAJA}));return c}
 const pagadoOf=m=>cobrosOf(m).reduce((s,c)=>s+(+c.monto||0),0);
 const saldoOf=m=>Math.max(0,(+m.total||0)-pagadoOf(m));
 
@@ -50,31 +53,32 @@ function calc(){
 function totals(P){
   const inv=S.comp.reduce((s,c)=>s+(+c.monto||0)+(+c.envio||0),0);
   const gastos=S.gastos.reduce((s,g)=>s+(+g.monto||0),0);
-  let ing=0,costo=0,cobrado=0,porCobrar=0,uds=0,stockU=0,stockV=0;
+  let ing=0,costo=0,cobrado=0,porCobrar=0,uds=0,stockU=0,stockV=0,stockC=0;
   for(const m of S.mov){if(m.tipo==='Venta'){ing+=+m.total||0;cobrado+=Math.min(pagadoOf(m),+m.total||0);porCobrar+=saldoOf(m);uds+=+m.cant||0}
     if(m.tipo==='Devolución')ing-=+m.total||0}
   const adelantos=S.sep.filter(s=>s.estado==='Apartado').reduce((t,s)=>t+pagadoOf(s),0);
   const retenido=S.sep.filter(s=>s.estado==='Cancelado').reduce((t,s)=>t+Math.max(0,pagadoOf(s)),0);ing+=retenido;cobrado+=retenido;
-  for(const p of Object.values(P)){costo+=p.costoVend;if(p.stock>0){stockU+=p.stock;stockV+=p.stock*(+p.precio||0)}}
-  return{inv,gastos,ing,costo,gan:ing-costo,neta:ing-costo-gastos,cobrado,porCobrar,uds,stockU,stockV,adelantos};
+  for(const p of Object.values(P)){costo+=p.costoVend;if(p.stock>0){stockU+=p.stock;stockV+=p.stock*(+p.precio||0);stockC+=p.stock*p.costo}}
+  return{inv,gastos,ing,costo,gan:ing-costo,neta:ing-costo-gastos,cobrado,porCobrar,uds,stockU,stockV,stockC,adelantos};
 }
-/* Cuentas entre socios: posición = dinero del negocio que tiene − lo que pagó por el negocio ± traspasos */
+/* Cuentas: posición = dinero del negocio que tiene − lo que puso de su bolsillo.
+   "Cuenta del negocio" guarda lo cobrado; "Ambos (50/50)" reparte un pago en partes iguales entre los socios. */
 function cuentas(){
-  const so=socios();const A={};const add=(n,k,v)=>{n=n||SIN;A[n]=A[n]||{cobro:0,pago:0,trIn:0,trOut:0};A[n][k]+=v};
-  so.forEach(n=>add(n,'cobro',0));
+  const so=socios();const A={};const add=(n,k,v)=>{n=n||CAJA;if(n===AMBOS){so.forEach(x=>add(x,k,v/so.length));return}A[n]=A[n]||{cobro:0,pago:0,trIn:0,trOut:0};A[n][k]+=v};
+  so.forEach(n=>add(n,'cobro',0));add(CAJA,'cobro',0);
   for(const m of S.mov){for(const c of cobrosOf(m)){const v=+c.monto||0;add(c.recibio,'cobro',m.tipo==='Devolución'?-v:v)}}
   for(const s of S.sep){if(s.estado==='Entregado')continue;for(const c of cobrosOf(s))add(c.recibio,'cobro',+c.monto||0)}
-  for(const c of S.comp)add(c.pagadoPor,'pago',(+c.monto||0)+(+c.envio||0));
-  for(const g of S.gastos)add(g.pagadoPor,'pago',+g.monto||0);
+  for(const c of S.comp)add(c.pagadoPor||AMBOS,'pago',(+c.monto||0)+(+c.envio||0));
+  for(const g of S.gastos)add(g.pagadoPor||CAJA,'pago',+g.monto||0);
   for(const t of S.smov){add(t.de,'trOut',+t.monto||0);add(t.a,'trIn',+t.monto||0)}
   const pct=S.ajustes.socios?.pct||{};const def=100/so.length;
-  const rows=Object.entries(A).map(([n,a])=>({n,...a,pos:a.cobro-a.pago+a.trIn-a.trOut,pct:n===SIN?0:(pct[n]??def)}));
-  const total=rows.reduce((s,r)=>s+r.pos,0);const sin=rows.find(r=>r.n===SIN);
-  const asig=rows.filter(r=>r.n!==SIN).reduce((s,r)=>s+r.pos,0);
-  rows.forEach(r=>{r.corr=r.n===SIN?0:asig*r.pct/100;r.dif=r.n===SIN?0:r.pos-r.corr});
-  return{rows:rows.filter(r=>r.n!==SIN),sin,total};
+  const pos=a=>a.cobro-a.pago+a.trIn-a.trOut;
+  const rows=so.map(n=>{const a=A[n];return{n,...a,pos:pos(a),aporte:-pos(a),pct:pct[n]??def}});
+  const caja={...A[CAJA],saldo:pos(A[CAJA])};
+  const totAp=rows.reduce((s,r)=>s+r.aporte,0);
+  rows.forEach(r=>{r.dif=totAp*r.pct/100-r.aporte});
+  return{rows,caja,totAp};
 }
-
 /* ---------- vistas ---------- */
 function pill(e){return `<span class="pill ${e==='DISPONIBLE'?'p-ok':e==='STOCK BAJO'||e==='SEPARADO'?'p-warn':'p-bad'}">${e}</span>`}
 function payPill(m){if(m.tipo!=='Venta')return `<span class="pill p-mu">${esc(m.tipo)}</span>`;const s=saldoOf(m);
@@ -140,7 +144,7 @@ function inventario(P){
 function ventas(P){
   const rows=[...S.mov].sort(byDate).map(m=>{const p=P[m.codigo];const g=m.tipo==='Venta'?(+m.total||0)-(+m.cant||0)*(m.costoUnit??p?.costo??0):null;
    const rec=[...new Set(cobrosOf(m).map(c=>c.recibio))];
-   return `<tr><td class="muted">${fdate(m.fecha)}</td><td><b>${esc(p?.nombre||m.codigo)}</b>${m.cant>1?` <span class="muted">×${m.cant}</span>`:''}<div class="small muted">${esc(m.cliente||'—')}${m.telefono?' · '+esc(m.telefono):''} · ${esc(m.canal||'')} · ${esc(m.pago||'')}${m.notas?'<br>'+esc(m.notas):''}${rec.length?'<br>Cobró: '+rec.map(r=>r===SIN?'<span style="color:var(--warn)">sin asignar</span>':esc(r)).join(', '):''}${who(m.por)?' · Registró: '+esc(who(m.por)):''}</div></td>
+   return `<tr><td class="muted">${fdate(m.fecha)}</td><td><b>${esc(p?.nombre||m.codigo)}</b>${m.cant>1?` <span class="muted">×${m.cant}</span>`:''}<div class="small muted">${esc(m.cliente||'—')}${m.telefono?' · '+esc(m.telefono):''} · ${esc(m.canal||'')} · ${esc(m.pago||'')}${m.notas?'<br>'+esc(m.notas):''}${rec.length?'<br>Entró a: '+rec.map(esc).join(', '):''}${who(m.por)?' · Registró: '+esc(who(m.por)):''}</div></td>
    <td class="r">${m.tipo==='Venta'||m.tipo==='Devolución'?PEN(m.total):'—'}${+m.descuento?`<div class="small muted">dscto ${PEN(m.descuento)}</div>`:''}</td><td class="r hide-m">${g==null?'—':PEN(g)}</td><td>${payPill(m)}</td>
    <td class="r nowrap"><button class="btn sm" data-a="editm" data-id="${esc(m.id)}">Editar</button> <button class="btn sm danger" data-a="delm" data-id="${esc(m.id)}">Borrar</button></td></tr>`}).join('');
   return head('Ventas y salidas','Ventas, obsequios, frascos abiertos para decants y devoluciones','<button class="btn" data-a="salida">+ Otra salida</button><button class="btn pri" data-a="venta">+ Registrar venta</button>')+`
@@ -176,46 +180,53 @@ function separados(P){
 function gastos(){
   const L=[...S.gastos].sort(byDate);const tot=L.reduce((s,g)=>s+(+g.monto||0),0);
   const byCat={};L.forEach(g=>byCat[g.categoria]=(byCat[g.categoria]||0)+(+g.monto||0));
-  const rows=L.map(g=>`<tr><td class="muted">${fdate(g.fecha)}</td><td><b>${esc(g.descripcion||g.categoria)}</b><div class="small muted">${esc(g.categoria)} · pagó ${g.pagadoPor===SIN||!g.pagadoPor?'<span style="color:var(--warn)">sin asignar</span>':esc(g.pagadoPor)}</div></td><td class="r">${PEN(g.monto)}</td><td class="r"><button class="btn sm danger" data-a="delg" data-id="${esc(g.id)}">Borrar</button></td></tr>`).join('');
+  const rows=L.map(g=>`<tr><td class="muted">${fdate(g.fecha)}</td><td><b>${esc(g.descripcion||g.categoria)}</b><div class="small muted">${esc(g.categoria)} · pagado con ${esc(g.pagadoPor||CAJA)}</div></td><td class="r">${PEN(g.monto)}</td><td class="r"><button class="btn sm danger" data-a="delg" data-id="${esc(g.id)}">Borrar</button></td></tr>`).join('');
   return head('Gastos',`Total ${PEN(tot)} · se descuentan de la ganancia`,'<button class="btn pri" data-a="gasto">+ Registrar gasto</button>')+
   (Object.keys(byCat).length?`<div class="kpis">${Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`<div class="kpi"><div class="l">${esc(c)}</div><div class="v">${PEN0(v)}</div></div>`).join('')}</div>`:'')+
   `<div class="box tblw"><table><thead><tr><th>Fecha</th><th>Gasto</th><th class="r">Monto</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="4" class="empty">Aún no hay gastos. Registra publicidad, envíos, bolsas o frascos para decants.</td></tr>'}</tbody></table></div>`;
 }
 function compras(P){
   const L=[...S.comp].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')||(b.nombre||'').localeCompare(a.nombre||''));
-  const rows=L.map(c=>{const n=(c.items||[]).reduce((s,i)=>s+(+i.cant||0),0);const pp=c.pagadoPor&&c.pagadoPor!==SIN?esc(c.pagadoPor):'<span style="color:var(--warn)">sin asignar</span>';
-   return `<tr><td class="muted">${fdate(c.fecha)}</td><td><b>${esc(c.nombre)}</b><div class="small muted">${esc(c.proveedor||'')} · pagó ${pp}<br>${(c.items||[]).map(i=>esc(P[i.codigo]?.nombre||i.codigo)+(i.cant>1?' ×'+i.cant:'')+(i.regalo?' (regalo)':'')).join(', ')}</div></td>
+  const rows=L.map(c=>{const n=(c.items||[]).reduce((s,i)=>s+(+i.cant||0),0);const pp=esc(c.pagadoPor||AMBOS);
+   return `<tr><td class="muted">${fdate(c.fecha)}</td><td><b>${esc(c.nombre)}</b><div class="small muted">${esc(c.proveedor||'')} · pagado con ${pp}<br>${(c.items||[]).map(i=>esc(P[i.codigo]?.nombre||i.codigo)+(i.cant>1?' ×'+i.cant:'')+(i.regalo?' (regalo)':'')).join(', ')}</div></td>
    <td class="r">${n}</td><td class="r">${PEN(c.monto)}${+c.envio?`<div class="small muted">+ envío ${PEN(c.envio)}</div>`:''}</td><td class="r nowrap"><button class="btn sm" data-a="editc" data-id="${esc(c.id)}">Editar</button> <button class="btn sm danger" data-a="delc" data-id="${esc(c.id)}">Borrar</button></td></tr>`}).join('');
   const inv=S.comp.reduce((s,c)=>s+(+c.monto||0)+(+c.envio||0),0);
   return head('Compras',`Inversión total ${PEN(inv)} · cada pack reparte su costo entre lo que trajo`,'<button class="btn pri" data-a="compra">+ Registrar compra</button>')+`
   <div class="box tblw"><table><thead><tr><th>Fecha</th><th>Compra / pack</th><th class="r">Und</th><th class="r">Pagado</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="empty">Sin compras registradas.</td></tr>'}</tbody></table></div>`;
 }
-function vSocios(){
+function vSocios(P,T){
   const C=cuentas();const so=C.rows;
-  const cards=so.map(r=>`<div class="kpi"><div class="l">${esc(r.n)} · ${Math.round(r.pct)}%</div><div class="v">${PEN0(r.pos)}</div>
-    <div class="d">Cobró ${PEN0(r.cobro)} · pagó ${PEN0(r.pago)}${r.trIn||r.trOut?` · traspasos ${PEN0(r.trIn-r.trOut)}`:''}</div></div>`).join('');
-  let liq='';
-  const deb=so.filter(r=>r.dif>0.5).sort((a,b)=>b.dif-a.dif),acr=so.filter(r=>r.dif<-0.5).sort((a,b)=>a.dif-b.dif);
-  const pares=[];{const d=deb.map(r=>({...r})),a=acr.map(r=>({...r}));let i=0,j=0;while(i<d.length&&j<a.length){const m=Math.min(d[i].dif,-a[j].dif);pares.push([d[i].n,a[j].n,m]);d[i].dif-=m;a[j].dif+=m;if(d[i].dif<0.5)i++;if(a[j].dif>-0.5)j++}}
-  liq=pares.length?pares.map(([de,a,m])=>`<div class="liq"><b>${esc(de)}</b> le pasa <b class="gold">${PEN(m)}</b> a <b>${esc(a)}</b></div>`).join(''):'<div class="liq">Están parejos: nadie le debe al otro.</div>';
-  const sinWarn=C.sin&&(Math.abs(C.sin.cobro)>0.5||C.sin.pago>0.5)?`<div class="note">Hay ${C.sin.cobro>0.5?`<b>${PEN(C.sin.cobro)}</b> cobrados`:''}${C.sin.cobro>0.5&&C.sin.pago>0.5?' y ':''}${C.sin.pago>0.5?`<b>${PEN(C.sin.pago)}</b> en compras o gastos`:''} sin indicar qué socio los recibió o pagó. Asígnalos con <b>Editar</b> en Ventas y Compras para que la cuenta sea exacta.</div>`:'';
-  const tr=[...S.smov].sort(byDate).map(t=>`<div class="item"><div><b>${esc(t.de)}</b> → <b>${esc(t.a)}</b><div class="small muted">${fdate(t.fecha)}${t.nota?' · '+esc(t.nota):''}</div></div><div style="display:flex;gap:8px;align-items:center"><b>${PEN(t.monto)}</b><button class="btn sm danger" data-a="delt" data-id="${esc(t.id)}">Borrar</button></div></div>`).join('');
-  return head('Cuentas entre socios','Quién tiene la plata del negocio y cómo quedar parejos','<button class="btn" data-a="pct">Porcentajes</button><button class="btn pri" data-a="traspaso">+ Traspaso entre socios</button>')+sinWarn+`
-  <div class="kpis">${cards}<div class="kpi hl"><div class="l">Negocio (neto en caja)</div><div class="v">${PEN0(C.total)}</div><div class="d">Todo lo cobrado − compras − gastos</div></div></div>
+  const patr=C.caja.saldo+T.stockC+T.porCobrar;const gan=patr-C.totAp;
+  const cards=so.map(r=>`<div class="kpi"><div class="l">${esc(r.n)} · ${Math.round(r.pct)}%</div><div class="v">${PEN0(r.aporte)}</div>
+    <div class="d">Capital aportado${r.cobro?` · cobró a su cuenta ${PEN0(r.cobro)}`:''}</div></div>`).join('');
+  const pares=[];{const d=so.filter(r=>r.dif>0.5).map(r=>({...r})),a=so.filter(r=>r.dif<-0.5).map(r=>({...r}));let i=0,j=0;while(i<d.length&&j<a.length){const m=Math.min(d[i].dif,-a[j].dif);pares.push([d[i].n,a[j].n,m]);d[i].dif-=m;a[j].dif+=m;if(d[i].dif<0.5)i++;if(a[j].dif>-0.5)j++}}
+  const liq=pares.length?pares.map(([de,a,m])=>`<div class="liq"><b>${esc(de)}</b> puso <b class="gold">${PEN(m)}</b> menos de lo que le toca. Puede pasárselos a <b>${esc(a)}</b> o aportarlos al negocio.</div>`).join(''):'<div class="liq">Aportes parejos: cada uno puso su parte.</div>';
+  const tr=[...S.smov].sort(byDate).map(t=>`<div class="item"><div><b>${esc(t.de)}</b> → <b>${esc(t.a)}</b><div class="small muted">${fdate(t.fecha)} · ${t.a===CAJA?'Aporte de capital':t.de===CAJA?'Retiro':'Entre socios'}${t.nota?' · '+esc(t.nota):''}</div></div><div style="display:flex;gap:8px;align-items:center"><b>${PEN(t.monto)}</b><button class="btn sm danger" data-a="delt" data-id="${esc(t.id)}">Borrar</button></div></div>`).join('');
+  const share=so.map(r=>`<div class="item"><div>${esc(r.n)} (${Math.round(r.pct)}%)</div><b>${PEN(patr*r.pct/100)}</b></div>`).join('');
+  return head('Socios y capital','Cuánto puso cada uno y cuánto vale hoy el negocio','<button class="btn" data-a="pct">Porcentajes</button><button class="btn pri" data-a="traspaso">+ Aporte, retiro o traspaso</button>')+`
+  <div class="kpis">${cards}<div class="kpi hl"><div class="l">${CAJA}</div><div class="v">${PEN0(C.caja.saldo)}</div><div class="d">Cobrado ${PEN0(C.caja.cobro)} − pagado ${PEN0(C.caja.pago)}${C.caja.trIn||C.caja.trOut?` ± aportes y retiros ${PEN0(C.caja.trIn-C.caja.trOut)}`:''}</div></div></div>
   <div class="grid2">
-   <div class="box"><h3>Para quedar parejos</h3>${liq}<p class="small muted" style="margin-top:10px">Cada número de arriba es lo que esa persona tiene del negocio: lo que cobró menos lo que pagó de su bolsillo (compras y gastos). Lo justo es que cada uno quede con su porcentaje. Los montos sin asignar no entran en este cálculo.</p></div>
-   <div class="box"><h3>Traspasos registrados</h3>${tr||'<div class="empty">Cuando uno le pase dinero al otro, regístralo aquí para que la cuenta se actualice.</div>'}</div>
+   <div class="box"><h3>Cuánto vale el negocio hoy</h3>
+    <div class="item"><div>Dinero en la cuenta del negocio</div><b>${PEN(C.caja.saldo)}</b></div>
+    <div class="item"><div>Mercadería en stock (a costo)</div><b>${PEN(T.stockC)}</b></div>
+    <div class="item"><div>Lo que les deben (por cobrar)</div><b>${PEN(T.porCobrar)}</b></div>
+    <div class="item"><div><b>Patrimonio total</b></div><b class="gold" style="font-size:18px">${PEN(patr)}</b></div>
+    <div class="item"><div>Capital que pusieron</div><b>${PEN(C.totAp)}</b></div>
+    <div class="item"><div>Ganancia acumulada (sin repartir)</div><b style="color:${gan>=0?'var(--ok)':'var(--bad)'}">${PEN(gan)}</b></div>
+    <h3 style="margin-top:14px">Parte de cada socio</h3>${share}</div>
+   <div class="box"><h3>Aportes parejos</h3>${liq}<p class="small muted" style="margin-top:10px">Compara lo que puso cada uno con su porcentaje. Las compras marcadas "${AMBOS}" se dividen en partes iguales.</p>
+    <h3 style="margin-top:14px">Aportes, retiros y traspasos</h3>${tr||'<div class="empty">Registra aquí si alguno mete más dinero al negocio (aporte), si sacan ganancia (retiro) o si se pasan dinero entre ustedes.</div>'}</div>
   </div>`;
 }
 function instrucciones(){
   return head('Instrucciones','Cómo usar la app día a día')+`<div class="ins grid2">
-   <div class="box"><h3>Registrar una venta</h3><ol><li>Toca <b>+ Registrar venta</b>.</li><li>Elige el perfume. El precio se llena solo; puedes cambiarlo.</li><li>Si hiciste descuento, escribe el monto en <b>Descuento total</b>.</li><li>Pon el cliente y su celular (sirve para cobrarle por WhatsApp).</li><li>En <b>¿Cuánto pagó ahora?</b> deja el total si pagó todo. Si pagó una parte o es a crédito, escribe lo que pagó: el resto va a <b>Por cobrar</b>.</li><li>En <b>¿Quién recibió el dinero?</b> marca si lo cobraste tú o tu socio.</li></ol></div>
-   <div class="box"><h3>Cobrar una deuda</h3><ol><li>Entra a <b>Por cobrar</b>. Las deudas están agrupadas por cliente.</li><li>Toca <b>Recordar por WhatsApp</b>: se abre WhatsApp con el mensaje y el saldo listos para enviar.</li><li>Cuando te paguen, toca <b>Registrar pago</b>, escribe el monto y quién lo recibió.</li></ol></div>
+   <div class="box"><h3>Registrar una venta</h3><ol><li>Toca <b>+ Registrar venta</b>.</li><li>Elige el perfume. El precio se llena solo; puedes cambiarlo.</li><li>Si hiciste descuento, escribe el monto en <b>Descuento total</b>.</li><li>Pon el cliente y su celular (sirve para cobrarle por WhatsApp).</li><li>En <b>¿Cuánto pagó ahora?</b> deja el total si pagó todo. Si pagó una parte o es a crédito, escribe lo que pagó: el resto va a <b>Por cobrar</b>.</li><li>En <b>¿Dónde entró el dinero?</b> deja <b>Cuenta del negocio</b>, salvo que lo haya recibido un socio en su cuenta personal.</li></ol></div>
+   <div class="box"><h3>Cobrar una deuda</h3><ol><li>Entra a <b>Por cobrar</b>. Las deudas están agrupadas por cliente.</li><li>Toca <b>Recordar por WhatsApp</b>: se abre WhatsApp con el mensaje y el saldo listos para enviar.</li><li>Cuando te paguen, toca <b>Registrar pago</b> y escribe el monto.</li></ol></div>
    <div class="box"><h3>Separados y encargos</h3><ol><li>En <b>Separados › + Nuevo separado</b> registra al cliente, el perfume y el adelanto (tu regla: 50%).</li><li>Si el perfume está en stock, queda apartado y nadie más lo puede vender. Si no hay, márcalo como <b>Encargo</b>.</li><li>Con <b>Abono</b> registras pagos parciales; con <b>WhatsApp</b> le avisas cuánto le falta.</li><li>Al entregarlo toca <b>Entregar</b>: se convierte en venta y, si aún debe algo, pasa a Por cobrar.</li><li>Si el cliente se arrepiente, <b>Cancelar</b> registra cuánto le devolviste.</li></ol></div>
-   <div class="box"><h3>Gastos</h3><p>Registra todo lo que sale para el negocio y no es mercadería: publicidad, delivery, bolsas, frascos para decants, pasajes. Se restan de la ganancia, así ves la <b>ganancia neta</b> real. Indica qué socio lo pagó.</p></div>
-   <div class="box"><h3>Cuentas entre socios</h3><p>La app suma lo que cada uno <b>cobró</b> (ventas, pagos, adelantos) y le resta lo que <b>pagó de su bolsillo</b> (compras y gastos). Con eso dice exactamente cuánto le tiene que pasar uno al otro para quedar parejos según sus porcentajes.</p><p>Cuando se pasen dinero, regístralo como <b>Traspaso</b>. Los porcentajes se cambian con el botón <b>Porcentajes</b> (por defecto 50/50).</p></div>
+   <div class="box"><h3>Gastos</h3><p>Registra todo lo que sale para el negocio y no es mercadería: publicidad, delivery, bolsas, frascos para decants, pasajes. Se restan de la ganancia, así ves la <b>ganancia neta</b> real. Normalmente se pagan con la Cuenta del negocio.</p></div>
+   <div class="box"><h3>Socios y capital</h3><ul><li>Lo que se cobra entra a la <b>Cuenta del negocio</b> (opción por defecto en ventas y pagos).</li><li>Las compras se marcan <b>Ambos (50/50)</b> cuando cada uno puso la mitad. Si uno puso todo, elige su nombre.</li><li>Los gastos se pagan con la <b>Cuenta del negocio</b>, salvo que alguno lo pague de su bolsillo.</li><li>En <b>Socios</b> ves el capital que puso cada uno, el saldo de la cuenta, cuánto vale hoy el negocio (dinero + mercadería + por cobrar) y la ganancia acumulada.</li><li>Si alguno mete más dinero, regístralo como <b>Aporte de capital</b>; cuando decidan repartir, como <b>Retiro de ganancia</b>.</li></ul></div>
    <div class="box"><h3>Obsequios, decants y devoluciones</h3><ul><li><b>Obsequio:</b> baja el stock sin ingreso.</li><li><b>Decants (frasco abierto):</b> ese frasco ya no se vende sellado.</li><li><b>Devolución:</b> vuelve al stock y se descuenta lo devuelto.</li></ul><p class="small muted">Ventas › <b>+ Otra salida</b>.</p></div>
-   <div class="box"><h3>Registrar una compra</h3><ol><li>Si llegó un perfume nuevo, créalo en <b>Inventario › + Nuevo producto</b>.</li><li>En <b>Compras › + Registrar compra</b> pon lo que pagaste, el envío y <b>quién pagó</b>.</li><li>Agrega cada producto y su cantidad. Marca <b>Regalo</b> en lo que vino gratis.</li></ol><p class="small muted">El costo del pack se reparte entre los perfumes según su precio de venta; los regalos cuestan S/ 0.</p></div>
+   <div class="box"><h3>Registrar una compra</h3><ol><li>Si llegó un perfume nuevo, créalo en <b>Inventario › + Nuevo producto</b>.</li><li>En <b>Compras › + Registrar compra</b> pon lo que pagaste, el envío y <b>con qué se pagó</b> (por defecto Ambos 50/50).</li><li>Agrega cada producto y su cantidad. Marca <b>Regalo</b> en lo que vino gratis.</li></ol><p class="small muted">El costo del pack se reparte entre los perfumes según su precio de venta; los regalos cuestan S/ 0.</p></div>
    <div class="box"><h3>Instalar en el celular</h3><ul><li><b>iPhone:</b> Safari › Compartir › <b>Agregar a pantalla de inicio</b>.</li><li><b>Android:</b> Chrome › menú ⋮ › <b>Instalar app</b>.</li></ul></div>
    <div class="box"><h3>Acceso y cambios</h3><ul><li>Solo entran los correos registrados como dueños. Cada registro guarda quién lo hizo.</li><li>Si prestas tu celular, toca <b>Cerrar sesión</b>.</li><li>Para pedir mejoras, díselo a Claude: el cambio queda como una versión nueva en GitHub y se publica solo.</li></ul></div>
   </div>`;
@@ -247,7 +258,7 @@ function formVenta(){
    <label>Canal${sel('v-ca',['WhatsApp','Instagram','TikTok','Facebook','Tienda / en persona','Página web','Otro'],'WhatsApp')}</label>
    <label>Forma de pago${sel('v-pg',[...PAGOS,'Crédito'],'Yape')}</label>
    <label>¿Cuánto pagó ahora? (S/)<input id="v-pa" type="number" min="0" step="0.01"></label>
-   <label>¿Quién recibió el dinero?<select id="v-rc">${socioOpts(yo())}</select></label>
+   <label>¿Dónde entró el dinero?<select id="v-rc">${cajaOpts()}</select></label>
    <label class="full">Notas<input id="v-n" placeholder="Opcional"></label>
    </form><div class="tot"><span class="muted">Total</span><b id="v-t">S/ 0.00</b></div><div class="small muted" id="v-g"></div><div class="err" id="v-e"></div>
    <div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pri" id="v-s">Guardar venta</button></div>`,ov=>{
@@ -275,7 +286,7 @@ function formEditMov(id){
    <label>Cliente<input id="e-cl" value="${esc(m.cliente||'')}" list="clientes"></label>${clientesList()}
    <label>Celular<input id="e-tel" type="tel" value="${esc(m.telefono||'')}"></label>
    <label class="full">Notas<input id="e-n" value="${esc(m.notas||'')}"></label>
-   ${cb.map((c,i)=>`<label class="full">Cobro ${fdate(c.fecha)} · ${PEN(c.monto)} · ${esc(c.metodo||'')} — ¿quién lo recibió?<select id="e-r${i}">${socioOpts(c.recibio,c.recibio===SIN?[SIN]:[])}</select></label>`).join('')}
+   ${cb.map((c,i)=>`<label class="full">Cobro ${fdate(c.fecha)} · ${PEN(c.monto)} · ${esc(c.metodo||'')} — ¿dónde entró?<select id="e-r${i}">${cajaOpts(c.recibio)}</select></label>`).join('')}
    </form><div class="err" id="e-e"></div><div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pri" id="e-s">Guardar</button></div>`,ov=>{
     const $=$in(ov);
     $('e-s').onclick=()=>{cb.forEach((c,i)=>c.recibio=$('e-r'+i).value);
@@ -290,7 +301,7 @@ function formSalida(){
    <label>Cantidad<input id="s-c" type="number" min="1" value="1"></label>
    <label>Fecha<input id="s-f" type="date" value="${today()}"></label>
    <label id="s-mw" hidden>Monto devuelto al cliente (S/)<input id="s-m" type="number" min="0" step="0.01" value="0"></label>
-   <label id="s-dw" hidden>¿Quién devolvió el dinero?<select id="s-d">${socioOpts(yo())}</select></label>
+   <label id="s-dw" hidden>¿De dónde salió la devolución?<select id="s-d">${cajaOpts()}</select></label>
    <label class="full">Cliente o motivo<input id="s-cl"></label>
    <label class="full">Notas<input id="s-n"></label></form><div class="err" id="s-e"></div>
    <div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pri" id="s-s">Guardar</button></div>`,ov=>{
@@ -312,7 +323,7 @@ function formCobro(table,id){
    <form class="f" onsubmit="return false"><label>Monto que pagó (S/)<input id="a-m" type="number" min="0" step="0.01" value="${saldo.toFixed(2)}"></label>
    <label>Forma de pago${sel('a-p',PAGOS,'Yape')}</label>
    <label>Fecha<input id="a-f" type="date" value="${today()}"></label>
-   <label>¿Quién recibió el dinero?<select id="a-r">${socioOpts(yo())}</select></label></form><div class="err" id="a-e"></div>
+   <label>¿Dónde entró el dinero?<select id="a-r">${cajaOpts()}</select></label></form><div class="err" id="a-e"></div>
    <div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pri" id="a-s">Guardar pago</button></div>`,ov=>{
     const $=$in(ov);
     $('a-s').onclick=()=>{const a=+$('a-m').value||0;if(a<=0)return $('a-e').textContent='Escribe cuánto pagó.';if(a>saldo+0.005)return $('a-e').textContent=`Falta ${PEN(saldo)}; el pago no puede ser mayor.`;
@@ -330,7 +341,7 @@ function formSeparado(){
    <label>Celular<input id="p-tel" type="tel" inputmode="tel"></label>
    <label>Adelanto (S/)<input id="p-a" type="number" min="0" step="0.01"></label>
    <label>Forma de pago${sel('p-m',PAGOS,'Yape')}</label>
-   <label>¿Quién recibió el adelanto?<select id="p-r">${socioOpts(yo())}</select></label>
+   <label>¿Dónde entró el adelanto?<select id="p-r">${cajaOpts()}</select></label>
    <label>Fecha<input id="p-f" type="date" value="${today()}"></label>
    <label class="full chk"><input type="checkbox" id="p-enc"> Es encargo (no hay en stock, se pide al proveedor)</label>
    <label class="full">Notas<input id="p-n" placeholder="Ej. entrega el sábado"></label></form>
@@ -354,7 +365,7 @@ function formEntrega(id){
   const s=S.sep.find(x=>x.id===id);if(!s)return;const P=calc();const p=P[s.codigo];const tot=(+s.precio||0)*(+s.cant||1);const falta=Math.max(0,tot-pagadoOf(s));
   open(`<h3>Entregar separado</h3><div class="sub" style="margin-bottom:10px">${esc(s.cliente)} · ${esc(p?.nombre||s.codigo)} · total ${PEN(tot)} · adelanto ${PEN(pagadoOf(s))}</div>
    <form class="f" onsubmit="return false"><label>Pagó al recoger (S/)<input id="g-m" type="number" min="0" step="0.01" value="${falta.toFixed(2)}"></label>
-   <label>Forma de pago${sel('g-p',PAGOS,'Yape')}</label><label>¿Quién recibió?<select id="g-r">${socioOpts(yo())}</select></label>
+   <label>Forma de pago${sel('g-p',PAGOS,'Yape')}</label><label>¿Dónde entró el dinero?<select id="g-r">${cajaOpts()}</select></label>
    <label>Canal${sel('g-ca',['WhatsApp','Instagram','TikTok','Facebook','Tienda / en persona','Página web','Otro'],'WhatsApp')}</label>
    <label>Fecha<input id="g-f" type="date" value="${today()}"></label></form>
    <div class="small muted">Se registra como venta. Si queda saldo, pasa a Por cobrar.</div><div class="err" id="g-e"></div>
@@ -373,7 +384,7 @@ function formCancelSep(id){
   const s=S.sep.find(x=>x.id===id);if(!s)return;const pag=pagadoOf(s);
   open(`<h3>Cancelar separado</h3><div class="sub" style="margin-bottom:10px">${esc(s.cliente)} dejó ${PEN(pag)} de adelanto.</div>
    <form class="f" onsubmit="return false"><label>¿Cuánto le devolviste? (S/)<input id="x-m" type="number" min="0" step="0.01" value="${pag.toFixed(2)}"></label>
-   <label>¿Quién lo devolvió?<select id="x-r">${socioOpts(yo())}</select></label><label class="full">Motivo<input id="x-n"></label></form>
+   <label>¿De dónde salió la devolución?<select id="x-r">${cajaOpts()}</select></label><label class="full">Motivo<input id="x-n"></label></form>
    <div class="small muted">Lo que no devuelvas queda como ingreso del negocio.</div><div class="err" id="x-e"></div>
    <div class="acts"><button class="btn" data-x>Volver</button><button class="btn pri" id="x-s" style="background:var(--bad);border-color:var(--bad);color:#fff">Cancelar separado</button></div>`,ov=>{
     const $=$in(ov);
@@ -387,7 +398,7 @@ function formGasto(){
   open(`<h3>Registrar gasto</h3><form class="f" onsubmit="return false">
    <label>Categoría${sel('g-c',GASTO_CAT,'Publicidad')}</label><label>Monto (S/)<input id="g-m" type="number" min="0" step="0.01"></label>
    <label class="full">Descripción<input id="g-d" placeholder="Ej. Anuncio Instagram 7 días"></label>
-   <label>Fecha<input id="g-f" type="date" value="${today()}"></label><label>¿Quién lo pagó?<select id="g-p">${socioOpts(yo())}</select></label></form>
+   <label>Fecha<input id="g-f" type="date" value="${today()}"></label><label>¿Con qué se pagó?<select id="g-p">${payOpts(CAJA)}</select></label></form>
    <div class="err" id="g-e"></div><div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pri" id="g-s">Guardar gasto</button></div>`,ov=>{
     const $=$in(ov);
     $('g-s').onclick=()=>{const m=+$('g-m').value||0;if(m<=0)return $('g-e').textContent='Escribe el monto del gasto.';
@@ -396,14 +407,19 @@ function formGasto(){
 }
 function formTraspaso(){
   const so=socios();
-  open(`<h3>Traspaso entre socios</h3><form class="f" onsubmit="return false">
-   <label>De<select id="t-de">${socioOpts(yo())}</select></label><label>Para<select id="t-a">${socioOpts(so.find(n=>n!==yo())||so[0])}</select></label>
+  open(`<h3>Aporte, retiro o traspaso</h3><form class="f" onsubmit="return false">
+   <label class="full">Tipo${sel('t-t',['Aporte de capital','Retiro de ganancia','Entre socios'],'Aporte de capital')}</label>
+   <label>De<select id="t-de"></select></label><label>Para<select id="t-a"></select></label>
    <label>Monto (S/)<input id="t-m" type="number" min="0" step="0.01"></label><label>Fecha<input id="t-f" type="date" value="${today()}"></label>
-   <label class="full">Nota<input id="t-n" placeholder="Ej. Yape de las ventas de la semana"></label></form>
-   <div class="err" id="t-e"></div><div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pri" id="t-s">Guardar</button></div>`,ov=>{
-    const $=$in(ov);
-    $('t-s').onclick=()=>{const m=+$('t-m').value||0;if(m<=0)return $('t-e').textContent='Escribe el monto.';if($('t-de').value===$('t-a').value)return $('t-e').textContent='Elige dos socios distintos.';
-      save(()=>api.add('socios_mov',{fecha:$('t-f').value||today(),de:$('t-de').value,a:$('t-a').value,monto:m,nota:$('t-n').value.trim(),creado:Date.now(),por:S.email}),'Traspaso guardado',$('t-e'))};
+   <label class="full">Nota<input id="t-n" placeholder="Ej. Aporte para el pedido de sets"></label></form>
+   <div class="small muted" id="t-h"></div><div class="err" id="t-e"></div><div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pri" id="t-s">Guardar</button></div>`,ov=>{
+    const $=$in(ov);const o=l=>l.map(n=>`<option>${esc(n)}</option>`).join('');
+    const upd=()=>{const t=$('t-t').value;if(t==='Aporte de capital'){$('t-de').innerHTML=o(so);$('t-a').innerHTML=o([CAJA]);$('t-h').textContent='Un socio mete dinero suyo al negocio.'}
+      else if(t==='Retiro de ganancia'){$('t-de').innerHTML=o([CAJA]);$('t-a').innerHTML=o(so);$('t-h').textContent='Se saca dinero de la cuenta del negocio para un socio.'}
+      else{$('t-de').innerHTML=o(so);$('t-a').innerHTML=o(so);$('t-a').value=so.find(n=>n!==$('t-de').value)||so[0];$('t-h').textContent='Un socio le pasa dinero al otro.'}};
+    $('t-t').onchange=upd;upd();
+    $('t-s').onclick=()=>{const m=+$('t-m').value||0;if(m<=0)return $('t-e').textContent='Escribe el monto.';if($('t-de').value===$('t-a').value)return $('t-e').textContent='Elige origen y destino distintos.';
+      save(()=>api.add('socios_mov',{fecha:$('t-f').value||today(),tipo:$('t-t').value,de:$('t-de').value,a:$('t-a').value,monto:m,nota:$('t-n').value.trim(),creado:Date.now(),por:S.email}),'Guardado',$('t-e'))};
   });
 }
 function formPct(){
@@ -439,7 +455,7 @@ function formCompra(){
    <label>Fecha<input id="c-f" type="date" value="${today()}"></label>
    <label>Nombre del pack o compra<input id="c-n" placeholder="Ej. Pack Sets noviembre"></label>
    <label>Proveedor<input id="c-pv" value="United Perfumes"></label>
-   <label>¿Quién pagó?<select id="c-pp">${socioOpts(yo())}</select></label>
+   <label>¿Con qué se pagó?<select id="c-pp">${payOpts(AMBOS)}</select></label>
    <label>Pagaste por los productos (S/)<input id="c-m" type="number" min="0" step="0.01"></label>
    <label>Envío (S/)<input id="c-e" type="number" min="0" step="0.01" value="0"></label>
    <div class="full"><div class="small muted" style="font-weight:600;margin-bottom:6px">Qué trajo</div><div id="c-items">${row()}</div>
@@ -460,7 +476,7 @@ function formEditCompra(id){
   open(`<h3>Editar compra</h3><form class="f" onsubmit="return false">
    <label class="full">Nombre<input id="k-n" value="${esc(c.nombre||'')}"></label>
    <label>Proveedor<input id="k-pv" value="${esc(c.proveedor||'')}"></label>
-   <label>¿Quién pagó?<select id="k-pp">${socioOpts(c.pagadoPor||SIN,!c.pagadoPor||c.pagadoPor===SIN?[SIN]:[])}</select></label>
+   <label>¿Con qué se pagó?<select id="k-pp">${payOpts(c.pagadoPor||AMBOS)}</select></label>
    <label>Pagado por productos (S/)<input id="k-m" type="number" min="0" step="0.01" value="${esc(c.monto)}"></label>
    <label>Envío (S/)<input id="k-e" type="number" min="0" step="0.01" value="${esc(c.envio||0)}"></label></form>
    <div class="err" id="k-er"></div><div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pri" id="k-s">Guardar</button></div>`,ov=>{
@@ -482,7 +498,7 @@ function bind(){
     else if(a==='delm'){const x=S.mov.find(z=>z.id===id);confirmDel('movimientos',id,`${x.tipo} de ${P[x.codigo]?.nombre||x.codigo} del ${fdate(x.fecha)}${x.cliente?' a '+x.cliente:''}.`)}
     else if(a==='delc'){const x=S.comp.find(z=>z.id===id);confirmDel('compras',id,`Compra "${x.nombre}" del ${fdate(x.fecha)}. Las unidades que trajo se quitarán del stock.`)}
     else if(a==='delg'){const x=S.gastos.find(z=>z.id===id);confirmDel('gastos',id,`Gasto "${x.descripcion||x.categoria}" de ${PEN(x.monto)}.`)}
-    else if(a==='delt'){const x=S.smov.find(z=>z.id===id);confirmDel('socios_mov',id,`Traspaso de ${x.de} a ${x.a} por ${PEN(x.monto)}.`)}});
+    else if(a==='delt'){const x=S.smov.find(z=>z.id===id);confirmDel('socios_mov',id,`Movimiento de ${x.de} a ${x.a} por ${PEN(x.monto)}.`)}});
   const q=document.getElementById('q');if(q){q.oninput=()=>{S.q=q.value;const pos=q.selectionStart;render();const n=document.getElementById('q');n.focus();n.setSelectionRange(pos,pos)}}
   const fc=document.getElementById('fcat');if(fc)fc.onchange=()=>{S.fcat=fc.value;render()};
   const fs=document.getElementById('fstock');if(fs)fs.onchange=()=>{S.fstock=fs.value;render()};
