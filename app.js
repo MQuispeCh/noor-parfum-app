@@ -4,7 +4,8 @@
 const TABLES=['productos','movimientos','compras','gastos','separados','socios_mov','ajustes'];
 const S={prod:{},mov:[],comp:[],gastos:[],sep:[],smov:[],ajustes:{},ready:{},sb:null,email:null,names:{},view:'resumen',q:'',fcat:'',fstock:''};
 const VIEWS=['resumen','inventario','ventas','separados','cobranza','gastos','compras','socios','instrucciones'];
-const NEGOCIO_WA='926 252 995';
+const YAPE_DEF='952 894 623';
+const yape=()=>S.ajustes.negocio?.yape||YAPE_DEF;
 const SIN='Sin asignar';
 const CAJA='Cuenta del negocio',AMBOS='Ambos (50/50)';
 
@@ -153,7 +154,7 @@ function ventas(P){
 function msgCobro(cliente,ms,P){
   const nom=(cliente||'').split(' ')[0];const tot=ms.reduce((s,m)=>s+saldoOf(m),0);
   return `Hola ${nom} 👋, te saluda *Noor Parfum* ✨\n\nTe escribo para recordarte tu saldo pendiente:\n`+ms.map(m=>`• ${P[m.codigo]?.nombre||m.codigo} (${fdate(m.fecha)}): ${PEN(saldoOf(m))}`).join('\n')+
-  `\n\n*Total: ${PEN(tot)}*\n\nPuedes pagar por Yape o Plin al ${NEGOCIO_WA}. Si ya pagaste, avísanos para registrarlo 🙏\n¡Gracias por tu confianza! 🌙`;
+  `\n\n*Total: ${PEN(tot)}*\n\nPuedes pagar por Yape o Plin al ${yape()}. Si ya pagaste, avísanos para registrarlo 🙏\n¡Gracias por tu confianza! 🌙`;
 }
 function cobranza(P,T,debts){
   const byC={};for(const m of debts){const k=(m.cliente||'Sin nombre').trim();(byC[k]=byC[k]||[]).push(m)}
@@ -163,7 +164,7 @@ function cobranza(P,T,debts){
     ${ms.map(m=>`<div class="item"><div>${esc(P[m.codigo]?.nombre||m.codigo)}<div class="small muted">${fdate(m.fecha)} · total ${PEN(m.total)}${pagadoOf(m)?' · pagó '+PEN(pagadoOf(m)):''}</div></div><div><button class="btn sm pri" data-a="abono" data-id="${esc(m.id)}">Registrar pago</button></div></div>`).join('')}
     <div class="acts" style="margin-top:8px"><a class="btn sm wa" href="${esc(waLink(tel,msgCobro(c,ms,P)))}" target="_blank" rel="noopener">Recordar por WhatsApp</a></div>
     ${tel?'':'<div class="small muted" style="text-align:right;margin-top:4px">Sin celular: WhatsApp te pedirá elegir el contacto. Agrégalo con Editar en Ventas.</div>'}</div>`}).join('');
-  return head('Por cobrar','Ventas a crédito o con pago pendiente',`<div class="kpi" style="padding:8px 14px"><div class="l">Total pendiente</div><div class="v" style="font-size:20px;color:${T.porCobrar?'var(--bad)':'inherit'}">${PEN(T.porCobrar)}</div></div>`)+
+  return head('Por cobrar',`Ventas a crédito o con pago pendiente · Yape/Plin para cobrar: <b>${esc(yape())}</b> <button class="out" data-a="yape">Cambiar</button>`,`<div class="kpi" style="padding:8px 14px"><div class="l">Total pendiente</div><div class="v" style="font-size:20px;color:${T.porCobrar?'var(--bad)':'inherit'}">${PEN(T.porCobrar)}</div></div>`)+
   (blocks?`<div class="grid2">${blocks}</div>`:'<div class="box empty">Nadie te debe. Las ventas que no se paguen completas aparecerán aquí.</div>');
 }
 function separados(P){
@@ -422,6 +423,13 @@ function formTraspaso(){
       save(()=>api.add('socios_mov',{fecha:$('t-f').value||today(),tipo:$('t-t').value,de:$('t-de').value,a:$('t-a').value,monto:m,nota:$('t-n').value.trim(),creado:Date.now(),por:S.email}),'Guardado',$('t-e'))};
   });
 }
+function formYape(){
+  open(`<h3>Número para cobrar</h3><form class="f" onsubmit="return false"><label class="full">Yape / Plin que aparece en los mensajes de cobro<input id="y-n" type="tel" inputmode="tel" value="${esc(yape())}"></label></form>
+   <div class="err" id="y-e"></div><div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pri" id="y-s">Guardar</button></div>`,ov=>{
+    const $=$in(ov);$('y-s').onclick=()=>{const n=$('y-n').value.trim();if(n.replace(/\D/g,'').length<9)return $('y-e').textContent='Escribe el número completo (9 dígitos).';
+      save(()=>api.set('ajustes','negocio',{...(S.ajustes.negocio||{}),yape:n}),'Número actualizado',$('y-e'))};
+  });
+}
 function formPct(){
   const so=socios();const pct=S.ajustes.socios?.pct||{};
   open(`<h3>Porcentajes de cada socio</h3><form class="f" onsubmit="return false">${so.map((n,i)=>`<label>${esc(n)} (%)<input id="pc${i}" type="number" min="0" max="100" step="1" value="${pct[n]??Math.round(100/so.length)}"></label>`).join('')}</form>
@@ -491,7 +499,7 @@ function confirmDel(table,id,label){open(`<h3>¿Borrar?</h3><p>${esc(label)}</p>
 function bind(){
   const m=document.getElementById('main');
   m.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const a=b.dataset.a,id=b.dataset.id;const P=calc();
-    const F={venta:formVenta,salida:formSalida,newp:()=>formProd(),compra:formCompra,sepnew:formSeparado,gasto:formGasto,traspaso:formTraspaso,pct:formPct};
+    const F={venta:formVenta,salida:formSalida,newp:()=>formProd(),compra:formCompra,sepnew:formSeparado,gasto:formGasto,traspaso:formTraspaso,pct:formPct,yape:formYape};
     if(F[a])return F[a]();
     if(a==='abono')formCobro('movimientos',id);else if(a==='sepabono')formCobro('separados',id);else if(a==='sepentrega')formEntrega(id);else if(a==='sepcancel')formCancelSep(id);
     else if(a==='editp')formProd(id);else if(a==='editm')formEditMov(id);else if(a==='editc')formEditCompra(id);
