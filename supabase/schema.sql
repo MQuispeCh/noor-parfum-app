@@ -9,7 +9,7 @@ create table if not exists public.duenos (
 
 create or replace function public.es_dueno() returns boolean
 language sql stable security definer set search_path = public as $$
-  select exists (select 1 from public.duenos where email = auth.jwt() ->> 'email');
+  select exists (select 1 from public.duenos where lower(email) = lower(auth.jwt() ->> 'email'));
 $$;
 
 -- Cada registro guarda sus campos en "data" (JSON), igual que la app.

@@ -469,7 +469,7 @@ function showLogin(){document.getElementById('appView').hidden=true;document.get
   document.getElementById('lf').addEventListener('submit',async e=>{e.preventDefault();const b=document.getElementById('l-b'),er=document.getElementById('l-err');b.disabled=true;er.textContent='';
     const {data,error}=await S.sb.auth.signInWithPassword({email:document.getElementById('l-e').value.trim(),password:document.getElementById('l-p').value});
     b.disabled=false;if(error){er.textContent='Correo o contraseña incorrectos.';return}
-    const {data:ok}=await S.sb.from('duenos').select('email').eq('email',data.user.email).maybeSingle();
+    const {data:ok}=await S.sb.from('duenos').select('email').ilike('email',data.user.email).maybeSingle();
     if(!ok){await S.sb.auth.signOut();er.textContent='Este correo no está autorizado como dueño.';return}
     enter(data.session)});
   document.getElementById('logout').onclick=async()=>{await S.sb.auth.signOut();if(chan){S.sb.removeChannel(chan);chan=null}location.reload()};
