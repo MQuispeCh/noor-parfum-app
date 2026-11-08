@@ -49,6 +49,12 @@ function calc(){
   for(const s of S.sep){if(s.estado==='Apartado'&&P[s.codigo])P[s.codigo].separado+=+s.cant||0}
   for(const p of Object.values(P)){p.stock=p.comprado-p.vendido-p.otras+p.devuelto;p.disp=p.stock-p.separado;
     p.estado=p.stock<=0?(p.comprado?'AGOTADO':'SIN STOCK'):p.disp<=0?'SEPARADO':p.disp<=(+p.stockMin||1)?'STOCK BAJO':'DISPONIBLE'}
+  /* Packs: no tienen stock propio; se arman con el disponible de sus componentes */
+  for(const p of Object.values(P)){if(!Array.isArray(p.componentes)||!p.componentes.length)continue;p.esPack=true;
+    const cs=p.componentes.filter(c=>P[c.codigo]&&!P[c.codigo].componentes);
+    p.disp=p.stock=cs.length?Math.max(0,Math.min(...cs.map(c=>Math.floor(P[c.codigo].disp/(+c.cant||1))))):0;
+    p.costo=cs.reduce((t,c)=>t+P[c.codigo].costo*(+c.cant||1),0);p.normal=cs.reduce((t,c)=>t+(+P[c.codigo].precio||0)*(+c.cant||1),0);
+    p.estado=p.disp<=0?'AGOTADO':p.disp<=1?'STOCK BAJO':'DISPONIBLE'}
   return P;
 }
 function totals(P){
@@ -59,7 +65,7 @@ function totals(P){
     if(m.tipo==='Devolución')ing-=+m.total||0}
   const adelantos=S.sep.filter(s=>s.estado==='Apartado').reduce((t,s)=>t+pagadoOf(s),0);
   const retenido=S.sep.filter(s=>s.estado==='Cancelado').reduce((t,s)=>t+Math.max(0,pagadoOf(s)),0);ing+=retenido;cobrado+=retenido;
-  for(const p of Object.values(P)){costo+=p.costoVend;if(p.stock>0){stockU+=p.stock;stockV+=p.stock*(+p.precio||0);stockC+=p.stock*p.costo}}
+  for(const p of Object.values(P)){if(p.esPack)continue;costo+=p.costoVend;if(p.stock>0){stockU+=p.stock;stockV+=p.stock*(+p.precio||0);stockC+=p.stock*p.costo}}
   return{inv,gastos,ing,costo,gan:ing-costo,neta:ing-costo-gastos,cobrado,porCobrar,uds,stockU,stockV,stockC,adelantos};
 }
 /* Cuentas: posición = dinero del negocio que tiene − lo que puso de su bolsillo.
@@ -132,11 +138,11 @@ function inventario(P){
   if(S.fcat)L=L.filter(p=>p.categoria===S.fcat);
   if(S.fstock==='con')L=L.filter(p=>p.disp>0);if(S.fstock==='sin')L=L.filter(p=>p.disp<=0);
   const cats=[...new Set(Object.values(P).map(p=>p.categoria))].sort();
-  const rows=L.map(p=>`<tr><td class="hide-m muted">${esc(p.id)}</td><td><b>${esc(p.nombre)}</b><div class="small muted">${esc(p.marca)} · ${esc(p.para||'')}${p.ml?' · '+p.ml+' ml':''}</div></td>
-   <td class="r"><b>${p.disp}</b>${p.separado?`<div class="small muted">+${p.separado} separado</div>`:''}<div class="small muted hide-m">de ${p.comprado}</div></td><td>${pill(p.estado)}</td>
+  const rows=L.map(p=>`<tr><td class="hide-m muted">${esc(p.id)}</td><td><b>${esc(p.nombre)}</b><div class="small muted">${p.esPack?'Pack: '+p.componentes.map(c=>esc(P[c.codigo]?.nombre||c.codigo)+(c.cant>1?' ×'+c.cant:'')).join(' + ')+` · normal ${PEN0(p.normal)}`:`${esc(p.marca)} · ${esc(p.para||'')}${p.ml?' · '+p.ml+' ml':''}`}</div></td>
+   <td class="r"><b>${p.disp}</b>${p.separado?`<div class="small muted">+${p.separado} separado</div>`:''}${p.esPack?'':`<div class="small muted hide-m">de ${p.comprado}</div>`}</td><td>${pill(p.estado)}</td>
    <td class="r">${PEN(p.precio)}</td><td class="r hide-m">${PEN(p.costo)}</td><td class="r hide-m">${p.precio?Math.round((p.precio-p.costo)/p.precio*100)+'%':'—'}</td>
-   <td class="r hide-m">${PEN(p.ingresos)}</td><td class="r"><button class="btn sm" data-a="editp" data-id="${esc(p.id)}">Editar</button></td></tr>`).join('');
-  return head('Inventario',`${L.length} productos · el costo se reparte por pack según el precio de venta`,'<button class="btn" data-a="newp">+ Nuevo producto</button>')+`
+   <td class="r hide-m">${PEN(p.ingresos)}</td><td class="r"><button class="btn sm" data-a="${p.esPack?'editpack':'editp'}" data-id="${esc(p.id)}">Editar</button></td></tr>`).join('');
+  return head('Inventario',`${L.length} productos · el costo se reparte por pack según el precio de venta`,'<button class="btn" data-a="newpack">+ Nuevo pack</button><button class="btn" data-a="newp">+ Nuevo producto</button>')+`
   <div class="tools"><input id="q" type="search" placeholder="Buscar perfume o marca" value="${esc(S.q)}">
    <select id="fcat"><option value="">Todas las categorías</option>${cats.map(c=>`<option ${S.fcat===c?'selected':''}>${esc(c)}</option>`).join('')}</select>
    <select id="fstock"><option value="">Todo</option><option value="con" ${S.fstock==='con'?'selected':''}>Disponibles</option><option value="sin" ${S.fstock==='sin'?'selected':''}>Sin stock</option></select></div>
@@ -224,6 +230,8 @@ function instrucciones(){
    <div class="box"><h3>Registrar una venta</h3><ol><li>Toca <b>+ Registrar venta</b>.</li><li>Elige el perfume. El precio se llena solo; puedes cambiarlo.</li><li>Si hiciste descuento, escribe el monto en <b>Descuento total</b>.</li><li>Pon el cliente y su celular (sirve para cobrarle por WhatsApp).</li><li>En <b>¿Cuánto pagó ahora?</b> deja el total si pagó todo. Si pagó una parte o es a crédito, escribe lo que pagó: el resto va a <b>Por cobrar</b>.</li><li>En <b>¿Dónde entró el dinero?</b> deja <b>Cuenta del negocio</b>, salvo que lo haya recibido un socio en su cuenta personal.</li></ol></div>
    <div class="box"><h3>Cobrar una deuda</h3><ol><li>Entra a <b>Por cobrar</b>. Las deudas están agrupadas por cliente.</li><li>Toca <b>Recordar por WhatsApp</b>: se abre WhatsApp con el mensaje y el saldo listos para enviar.</li><li>Cuando te paguen, toca <b>Registrar pago</b> y escribe el monto.</li></ol></div>
    <div class="box"><h3>Separados y encargos</h3><ol><li>En <b>Separados › + Nuevo separado</b> registra al cliente, el perfume y el adelanto (tu regla: 50%).</li><li>Si el perfume está en stock, queda apartado y nadie más lo puede vender. Si no hay, márcalo como <b>Encargo</b>.</li><li>Con <b>Abono</b> registras pagos parciales; con <b>WhatsApp</b> le avisas cuánto le falta.</li><li>Al entregarlo toca <b>Entregar</b>: se convierte en venta y, si aún debe algo, pasa a Por cobrar.</li><li>Si el cliente se arrepiente, <b>Cancelar</b> registra cuánto le devolviste.</li></ol></div>
+   <div class="box"><h3>Catálogo para clientes</h3><p>La dirección <b>…/noor-parfum-app/catalogo.html</b> es pública: muestra fotos, notas y precios solo de lo que hay en stock, y cada perfume tiene un botón para pedir por WhatsApp. Se actualiza solo con cada venta o compra. Ponla en la biografía de Instagram y TikTok.</p></div>
+   <div class="box"><h3>Packs de regalo</h3><p>Un pack junta varios productos con un precio especial (ej. perfume + body spray). No tiene stock propio: la app calcula cuántos puedes armar con lo que hay. Al venderlo, se descuenta cada producto y el cobro se reparte entre ellos. Se crean en <b>Inventario › + Nuevo pack</b>.</p></div>
    <div class="box"><h3>Gastos</h3><p>Registra todo lo que sale para el negocio y no es mercadería: publicidad, delivery, bolsas, frascos para decants, pasajes. Se restan de la ganancia, así ves la <b>ganancia neta</b> real. Normalmente se pagan con la Cuenta del negocio.</p></div>
    <div class="box"><h3>Socios y capital</h3><ul><li>Lo que se cobra entra a la <b>Cuenta del negocio</b> (opción por defecto en ventas y pagos).</li><li>Las compras se marcan <b>Ambos (50/50)</b> cuando cada uno puso la mitad. Si uno puso todo, elige su nombre.</li><li>Los gastos se pagan con la <b>Cuenta del negocio</b>, salvo que alguno lo pague de su bolsillo.</li><li>En <b>Socios</b> ves el capital que puso cada uno, el saldo de la cuenta, cuánto vale hoy el negocio (dinero + mercadería + por cobrar) y la ganancia acumulada.</li><li>Si alguno mete más dinero, regístralo como <b>Aporte de capital</b>; cuando decidan repartir, como <b>Retiro de ganancia</b>.</li></ul></div>
    <div class="box"><h3>Obsequios, decants y devoluciones</h3><ul><li><b>Obsequio:</b> baja el stock sin ingreso.</li><li><b>Decants (frasco abierto):</b> ese frasco ya no se vende sellado.</li><li><b>Devolución:</b> vuelve al stock y se descuenta lo devuelto.</li></ul><p class="small muted">Ventas › <b>+ Otra salida</b>.</p></div>
@@ -238,7 +246,7 @@ function open(html,onMount){document.getElementById('modal').innerHTML=`<div cla
   const ov=document.getElementById('ov');ov.addEventListener('click',e=>{if(e.target===ov)close()});ov.querySelectorAll('[data-x]').forEach(b=>b.onclick=close);onMount&&onMount(ov);const f=ov.querySelector('input,select');f&&f.focus()}
 function close(){document.getElementById('modal').innerHTML=''}
 function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
-function prodOpts(P,sel,onlyStock){return Object.values(P).sort((a,b)=>a.nombre.localeCompare(b.nombre)).map(p=>`<option value="${esc(p.id)}" ${p.id===sel?'selected':''} ${onlyStock&&p.disp<=0&&p.id!==sel?'disabled':''}>${esc(p.nombre)} · ${p.disp} disp. · ${PEN0(p.precio)}</option>`).join('')}
+function prodOpts(P,sel,onlyStock,noPacks){return Object.values(P).filter(p=>!(noPacks&&p.esPack)).sort((a,b)=>a.nombre.localeCompare(b.nombre)).map(p=>`<option value="${esc(p.id)}" ${p.id===sel?'selected':''} ${onlyStock&&p.disp<=0&&p.id!==sel?'disabled':''}>${esc(p.nombre)} · ${p.disp} disp. · ${PEN0(p.precio)}</option>`).join('')}
 const sel=(id,opts,v)=>`<select id="${id}">${opts.map(o=>`<option ${o===v?'selected':''}>${esc(o)}</option>`).join('')}</select>`;
 const clientesList=()=>`<datalist id="clientes">${[...new Set([...S.mov,...S.sep].map(m=>m.cliente).filter(Boolean))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>`;
 const telDe=c=>{const x=[...S.mov,...S.sep].filter(m=>m.cliente===c&&m.telefono).sort(byDate)[0];return x?x.telefono:''};
@@ -275,6 +283,11 @@ function formVenta(){
       if(c<1)return $('v-e').textContent='La cantidad debe ser al menos 1.';
       if(c>p.disp)return $('v-e').textContent=`Solo hay ${p.disp} unidades disponibles de ${p.nombre}.`;
       const f=$('v-f').value||today();const metodo=$('v-pg').value==='Crédito'?'Efectivo':$('v-pg').value;
+      if(p.esPack){const cs=p.componentes.map(x=>({...x,q:(+x.cant||1)*c,pr:+P[x.codigo].precio||0}));const W=cs.reduce((a,x)=>a+x.pr*x.q,0)||1;
+        const docs=cs.map((x,i)=>{const sh=x.pr*x.q/W;const tt=r2(t*sh);const pp=r2(pa*sh);return{fecha:f,tipo:'Venta',codigo:x.codigo,cant:x.q,precio:r2(tt/x.q),descuento:0,total:tt,costoUnit:r2(P[x.codigo].costo),
+          cliente:$('v-cl').value.trim(),telefono:$('v-tel').value.trim(),canal:$('v-ca').value,pago:$('v-pg').value,cobros:pp>0?[{fecha:f,monto:pp,metodo,recibio:$('v-rc').value}]:[],pagado:pp,
+          notas:[p.nombre+(c>1?' ×'+c:''),$('v-n').value.trim()].filter(Boolean).join(' · '),pack:p.id,creado:Date.now()+i,por:S.email}});
+        return save(async()=>{for(const d of docs)await api.add('movimientos',d)},'Venta del pack guardada',$('v-e'))}
       const doc={fecha:f,tipo:'Venta',codigo:p.id,cant:c,precio:+$('v-pr').value||0,descuento:+$('v-d').value||0,total:t,costoUnit:r2(p.costo),
         cliente:$('v-cl').value.trim(),telefono:$('v-tel').value.trim(),canal:$('v-ca').value,pago:$('v-pg').value,
         cobros:pa>0?[{fecha:f,monto:pa,metodo,recibio:$('v-rc').value}]:[],pagado:pa,notas:$('v-n').value.trim(),creado:Date.now(),por:S.email};
@@ -298,7 +311,7 @@ function formSalida(){
   const P=calc();
   open(`<h3>Otra salida o devolución</h3><form class="f" onsubmit="return false">
    <label class="full">Tipo${sel('s-t',['Obsequio','Decants (frasco abierto)','Otra salida','Devolución'],'Obsequio')}</label>
-   <label class="full">Producto<select id="s-p"><option value="">Elige un producto</option>${prodOpts(P,'',false)}</select></label>
+   <label class="full">Producto<select id="s-p"><option value="">Elige un producto</option>${prodOpts(P,'',false,true)}</select></label>
    <label>Cantidad<input id="s-c" type="number" min="1" value="1"></label>
    <label>Fecha<input id="s-f" type="date" value="${today()}"></label>
    <label id="s-mw" hidden>Monto devuelto al cliente (S/)<input id="s-m" type="number" min="0" step="0.01" value="0"></label>
@@ -335,7 +348,7 @@ function formCobro(table,id){
 function formSeparado(){
   const P=calc();
   open(`<h3>Nuevo separado</h3><form class="f" onsubmit="return false">
-   <label class="full">Producto<select id="p-p"><option value="">Elige un producto</option>${prodOpts(P,'',false)}</select></label>
+   <label class="full">Producto<select id="p-p"><option value="">Elige un producto</option>${prodOpts(P,'',false,true)}</select></label>
    <label>Cantidad<input id="p-c" type="number" min="1" value="1"></label>
    <label>Precio unitario (S/)<input id="p-pr" type="number" min="0" step="0.01"></label>
    <label>Cliente<input id="p-cl" list="clientes" autocomplete="off"></label>${clientesList()}
@@ -456,9 +469,33 @@ function formProd(id){
       save(()=>api.set('productos',id||next,d),p?'Producto actualizado':'Producto creado',$('p-e'))};
   });
 }
+function formPack(id){
+  const P=calc();const p=id?S.prod[id]:null;const ids=Object.keys(S.prod).filter(k=>/^PK/.test(k)).map(k=>+k.slice(2)||0);const next='PK'+String(Math.max(0,...ids)+1).padStart(2,'0');
+  const row=(c)=>`<div class="irow"><select class="i-p"><option value="">Producto</option>${prodOpts(P,c?.codigo||'',false,true)}</select><input class="i-c" type="number" min="1" value="${c?.cant||1}" aria-label="Cantidad"><span></span><button type="button" class="btn sm" data-rm aria-label="Quitar">✕</button></div>`;
+  open(`<h3>${p?'Editar pack':'Nuevo pack de regalo'}</h3><form class="f" onsubmit="return false">
+   <label class="full">Nombre del pack<input id="k-n" value="${esc(p?.nombre||'')}" placeholder="Ej. Pack Él Fresco"></label>
+   <label>Precio del pack (S/)<input id="k-pr" type="number" min="0" step="0.01" value="${esc(p?.precio??'')}"></label>
+   <label>Para${sel('k-pa',['Varones','Damas','Unisex'],p?.para||'Unisex')}</label>
+   <label class="full">Descripción para el catálogo<input id="k-d" value="${esc(p?.descripcion||'')}" placeholder="Ej. Perfume + body spray, listo para regalar"></label>
+   <div class="full"><div class="small muted" style="font-weight:600;margin-bottom:6px">Qué incluye</div><div id="k-items">${(p?.componentes||[null,null]).map(row).join('')}</div>
+   <button type="button" class="btn sm" id="k-add">+ Agregar producto</button></div></form>
+   <div class="small muted" id="k-g"></div><div class="err" id="k-e"></div>
+   <div class="acts">${p?'<button class="btn danger" id="k-del">Borrar pack</button>':''}<button class="btn" data-x>Cancelar</button><button class="btn pri" id="k-s">Guardar pack</button></div>`,ov=>{
+    const $=$in(ov);const box=$('k-items');
+    const items=()=>[...box.children].map(r=>({codigo:r.querySelector('.i-p').value,cant:+r.querySelector('.i-c').value||0})).filter(i=>i.codigo&&i.cant>0);
+    const upd=()=>{const it=items();const n=it.reduce((t,i)=>t+(+P[i.codigo].precio||0)*i.cant,0),co=it.reduce((t,i)=>t+P[i.codigo].costo*i.cant,0),pr=+$('k-pr').value||0;
+      $('k-g').textContent=it.length?`Por separado costaría ${PEN(n)} · costo ${PEN(co)}${pr?` · ganancia ${PEN(pr-co)} (${Math.round((pr-co)/pr*100)}%)`:''}`:''};
+    const wire=()=>{box.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{if(box.children.length>1){b.parentElement.remove();upd()}});box.querySelectorAll('select,input').forEach(x=>x.oninput=upd)};wire();upd();
+    $('k-pr').oninput=upd;$('k-add').onclick=()=>{box.insertAdjacentHTML('beforeend',row());wire()};
+    if(p)$('k-del').onclick=()=>{close();confirmDel('productos',id,`Pack "${p.nombre}". Las ventas ya registradas no cambian.`)};
+    $('k-s').onclick=()=>{const it=items();const n=$('k-n').value.trim();if(!n)return $('k-e').textContent='Escribe el nombre del pack.';if(it.length<2)return $('k-e').textContent='Un pack necesita al menos dos productos.';
+      const d={codigo:id||next,nombre:n,marca:'Noor Parfum',categoria:'Pack',para:$('k-pa').value,ml:0,precio:+$('k-pr').value||0,stockMin:0,descripcion:$('k-d').value.trim(),componentes:it};
+      save(()=>api.set('productos',id||next,d),p?'Pack actualizado':'Pack creado',$('k-e'))};
+  });
+}
 function formCompra(){
   const P=calc();
-  const row=()=>`<div class="irow"><select class="i-p"><option value="">Producto</option>${prodOpts(P,'',false)}</select><input class="i-c" type="number" min="1" value="1" aria-label="Cantidad"><label class="chk"><input type="checkbox" class="i-r">Regalo</label><button type="button" class="btn sm" data-rm aria-label="Quitar">✕</button></div>`;
+  const row=()=>`<div class="irow"><select class="i-p"><option value="">Producto</option>${prodOpts(P,'',false,true)}</select><input class="i-c" type="number" min="1" value="1" aria-label="Cantidad"><label class="chk"><input type="checkbox" class="i-r">Regalo</label><button type="button" class="btn sm" data-rm aria-label="Quitar">✕</button></div>`;
   open(`<h3>Registrar compra</h3><form class="f" onsubmit="return false">
    <label>Fecha<input id="c-f" type="date" value="${today()}"></label>
    <label>Nombre del pack o compra<input id="c-n" placeholder="Ej. Pack Sets noviembre"></label>
@@ -499,10 +536,10 @@ function confirmDel(table,id,label){open(`<h3>¿Borrar?</h3><p>${esc(label)}</p>
 function bind(){
   const m=document.getElementById('main');
   m.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const a=b.dataset.a,id=b.dataset.id;const P=calc();
-    const F={venta:formVenta,salida:formSalida,newp:()=>formProd(),compra:formCompra,sepnew:formSeparado,gasto:formGasto,traspaso:formTraspaso,pct:formPct,yape:formYape};
+    const F={venta:formVenta,salida:formSalida,newp:()=>formProd(),compra:formCompra,sepnew:formSeparado,gasto:formGasto,traspaso:formTraspaso,pct:formPct,yape:formYape,newpack:()=>formPack()};
     if(F[a])return F[a]();
     if(a==='abono')formCobro('movimientos',id);else if(a==='sepabono')formCobro('separados',id);else if(a==='sepentrega')formEntrega(id);else if(a==='sepcancel')formCancelSep(id);
-    else if(a==='editp')formProd(id);else if(a==='editm')formEditMov(id);else if(a==='editc')formEditCompra(id);
+    else if(a==='editp')formProd(id);else if(a==='editpack')formPack(id);else if(a==='editm')formEditMov(id);else if(a==='editc')formEditCompra(id);
     else if(a==='delm'){const x=S.mov.find(z=>z.id===id);confirmDel('movimientos',id,`${x.tipo} de ${P[x.codigo]?.nombre||x.codigo} del ${fdate(x.fecha)}${x.cliente?' a '+x.cliente:''}.`)}
     else if(a==='delc'){const x=S.comp.find(z=>z.id===id);confirmDel('compras',id,`Compra "${x.nombre}" del ${fdate(x.fecha)}. Las unidades que trajo se quitarán del stock.`)}
     else if(a==='delg'){const x=S.gastos.find(z=>z.id===id);confirmDel('gastos',id,`Gasto "${x.descripcion||x.categoria}" de ${PEN(x.monto)}.`)}

@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0d">
+<title>Noor Parfum · Catálogo</title>
+<meta name="description" content="Perfumes árabes 100% originales en Guadalupe y Chepén. Precios, notas y stock al día.">
+<meta property="og:title" content="Noor Parfum · Catálogo">
+<meta property="og:description" content="Perfumes árabes 100% originales. Pide por WhatsApp, delivery en Guadalupe y Chepén.">
+<meta property="og:image" content="icons/icon-512.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@500;600;700&family=Montserrat:wght@400;500;600;700&display=swap">
+<style>
+/* Catálogo público: cabecera de marca, aviso navideño, filtros y grilla de fichas. Un solo tema oscuro de la marca. */
+:root{
+  --bg:#0b0b0d; --glow:#2a2116; --card:#141210; --card2:#1d1a16; --line:#3a3226; --fg:#f7f1e6; --muted:#a89d8a;
+  --gold:#d4af7c; --gold2:#ecd5a8; --gold3:#a8824c; --ink:#16110a; --wa:#25d366; --red:#c7463c;
+  --display:"Playfair Display",Georgia,serif; --body:"Montserrat",system-ui,-apple-system,sans-serif; --script:"Great Vibes","Snell Roundhand",cursive;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;background:radial-gradient(1200px 600px at 50% -200px,var(--glow),transparent 70%) no-repeat,var(--bg);color:var(--fg);font:14px/1.5 var(--body)}
+img{max-width:100%}
+[hidden]{display:none!important}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{text-align:center;padding-block:34px 10px}
+header img{width:70px}
+.wm{font-family:var(--display);font-size:34px;font-weight:600;letter-spacing:.24em;line-height:1;margin-top:10px}
+.wm small{display:block;font-family:var(--body);font-size:11px;font-weight:600;letter-spacing:.7em;color:var(--gold);margin-top:8px}
+.slogan{font-family:var(--script);color:var(--gold);font-size:30px;margin-top:10px}
+.tag{color:var(--muted);font-size:13px;margin-top:4px}
+.xmas{margin-block:18px 6px;border:1px solid var(--gold3);border-radius:16px;padding:16px 18px;background:linear-gradient(135deg,color-mix(in srgb,var(--red) 22%,var(--card)),var(--card));display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;justify-content:space-between}
+.xmas b{font-family:var(--display);font-size:22px;font-weight:600}
+.xmas .perks{display:flex;flex-wrap:wrap;gap:8px}
+.perk{font-size:12px;font-weight:600;padding:5px 10px;border-radius:999px;background:color-mix(in srgb,var(--gold) 16%,transparent);color:var(--gold2)}
+nav{display:flex;gap:6px;overflow-x:auto;padding-block:14px;scrollbar-width:none;position:sticky;top:env(safe-area-inset-top,0px);z-index:3;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px)}
+nav button{flex:none;font:600 13px var(--body);color:var(--muted);background:var(--card);border:1px solid var(--line);padding:8px 14px;border-radius:999px;cursor:pointer}
+nav button.on{background:linear-gradient(135deg,var(--gold2),var(--gold) 55%,var(--gold3));color:var(--ink);border-color:var(--gold3)}
+nav button:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;padding-block:6px 30px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.ph{position:relative;aspect-ratio:1/1;background:radial-gradient(circle at 50% 55%,color-mix(in srgb,var(--gold) 26%,transparent),transparent 62%),var(--card2);display:flex;align-items:center;justify-content:center;padding:22px}
+.ph>img{max-height:100%;object-fit:contain;filter:drop-shadow(0 14px 18px rgba(0,0,0,.55))}
+.ph.foto{padding:0}.ph.foto img{width:100%;height:100%;object-fit:cover;filter:none}
+.ph{overflow:hidden}
+.ph .duo{position:absolute;inset:14% 8% 8%;display:flex;align-items:flex-end;justify-content:center}
+.ph .duo img{min-width:0;width:64%;height:100%;object-fit:contain;object-position:bottom;position:relative;z-index:2}
+.ph .duo img+img{width:30%;height:72%;margin-left:-6%;z-index:1}
+.badge{position:absolute;top:12px;left:12px;font-size:11px;font-weight:700;letter-spacing:.04em;padding:4px 9px;border-radius:999px;background:var(--red);color:#fff}
+.badge.g{background:var(--gold);color:var(--ink)}
+.body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.nm{font-family:var(--display);font-size:20px;font-weight:600;line-height:1.2;text-wrap:balance}
+.meta{font-size:12px;color:var(--muted)}
+.chip{align-self:flex-start;font-size:12px;font-weight:600;color:var(--gold2);background:color-mix(in srgb,var(--gold) 14%,transparent);padding:4px 10px;border-radius:999px}
+.insp{font-size:12.5px;color:var(--muted);font-style:italic}
+.notes{display:grid;gap:3px;font-size:12.5px}
+.notes div{display:grid;grid-template-columns:62px 1fr;gap:6px}
+.notes span{color:var(--gold);font-weight:600;font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding-top:1px}
+.ideal{font-size:12px;color:var(--muted)}
+.foot{margin-top:auto;display:flex;align-items:end;justify-content:space-between;gap:10px;padding-top:8px}
+.price{font-size:24px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1}
+.price s{display:block;font-size:12px;color:var(--muted);font-weight:500;margin-bottom:3px}
+.buy{display:inline-flex;align-items:center;gap:6px;background:var(--wa);color:#06260f;font-weight:700;font-size:13px;text-decoration:none;padding:10px 14px;border-radius:12px;white-space:nowrap}
+.last{font-size:11.5px;color:#ffb4a8;font-weight:600}
+.info{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px;margin-bottom:30px}
+.info .card{padding:16px}
+.info h3{font-family:var(--display);font-size:18px;margin:0 0 6px;font-weight:600}
+.info p{margin:0;color:var(--muted);font-size:13px}
+.empty{text-align:center;color:var(--muted);padding:50px 0}
+footer{text-align:center;color:var(--muted);font-size:12.5px;padding-block:10px 40px;border-top:1px solid var(--line)}
+footer .slogan{font-size:28px}
+footer b{color:var(--fg)}
+.float{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:5;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+@media (max-width:560px){.grid{grid-template-columns:1fr 1fr;gap:10px}.nm{font-size:16px}.body{padding:10px 11px 12px;gap:6px}.notes,.ideal,.insp{display:none}.price{font-size:19px}.foot{flex-direction:column;align-items:stretch}.buy{justify-content:center}.ph{padding:12px}.wm{font-size:28px}}
+@media (prefers-reduced-motion:no-preference){.card{transition:transform .2s}.card:hover{transform:translateY(-3px)}}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <img src="icons/logo.png" alt="Noor Parfum">
+  <div class="wm">NOOR<small>PARFUM</small></div>
+  <div class="slogan">Deja que tu esencia hable</div>
+  <div class="tag">Perfumes árabes 100% originales · Guadalupe y Chepén</div>
+</header>
+<main class="wrap">
+  <section class="xmas" aria-label="Campaña de Navidad">
+    <div><b>Regalos de Navidad</b><div class="meta">Packs con body spray de regalo y sets listos para regalar</div></div>
+    <div class="perks"><span class="perk">Envoltura de regalo gratis</span><span class="perk">Delivery en Guadalupe y Chepén</span><span class="perk">Yape · Plin · Efectivo</span></div>
+  </section>
+  <nav id="f" aria-label="Filtrar">
+    <button data-f="" class="on">Todo</button><button data-f="Pack">Packs de regalo</button><button data-f="Varones">Para él</button>
+    <button data-f="Damas">Para ella</button><button data-f="Unisex">Unisex</button><button data-f="Set">Sets</button><button data-f="Body spray">Body spray</button>
+  </nav>
+  <div id="grid" class="grid"><div class="empty" style="grid-column:1/-1">Cargando perfumes disponibles…</div></div>
+  <section class="info">
+    <div class="card"><h3>Decants</h3><p>¿Quieres probar antes? 5 ml desde S/ 17 y 10 ml desde S/ 32. Si te enamora, te descontamos el decant del frasco.</p></div>
+    <div class="card"><h3>Sepáralo con el 50%</h3><p>Si no lo puedes pagar hoy, sepáralo con la mitad y lo recoges cuando quieras.</p></div>
+    <div class="card"><h3>100% originales</h3><p>Importados desde Estados Unidos, sellados y con su caja. Te asesoramos para elegir el ideal.</p></div>
+  </section>
+</main>
+<footer class="wrap"><div class="slogan">Deja que tu esencia hable</div>
+  Pedidos por WhatsApp <b>926 252 995</b> · Instagram y TikTok <b>@noorparfum_guadalupe</b></footer>
+<a class="buy float" id="wa" href="#" target="_blank" rel="noopener">WhatsApp</a>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script src="config.js?v=20261107c"></script>
+<script src="catalogo/info.js?v=20261107c"></script>
+<script>
+const WA='51926252995';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const PEN=n=>'S/ '+Math.round(+n||0).toLocaleString('es-PE');
+const wa=t=>`https://wa.me/${WA}?text=${encodeURIComponent(t)}`;
+const INFO=window.NOOR_INFO||{};
+let ITEMS=[],F='';
+document.getElementById('wa').href=wa('Hola Noor Parfum 👋 Vi su catálogo y quiero información ✨');
+const clean=n=>String(n).replace(/\s*\((caja|Jewels)[^)]*\)/i,'').trim();
+function card(p){
+  const i=INFO[p.id]||{};const d=p.data;const pack=d.categoria==='Pack';
+  let ph;
+  if(pack){const cs=(d.componentes||[]).map(c=>INFO[c.codigo]?.img).filter(Boolean).slice(0,2);ph=`<div class="ph"><div class="duo">${cs.map(s=>`<img src="${esc(s)}" alt="" loading="lazy">`).join('')}</div><span class="badge">Pack de regalo</span></div>`}
+  else ph=`<div class="ph${i.foto?' foto':''}">${i.img?`<img src="${esc(i.img)}" alt="${esc(d.nombre)}" loading="lazy">`:''}${d.categoria==='Set'?'<span class="badge g">Set de regalo</span>':''}</div>`;
+  const notas=(i.notas||[]).length===3?`<div class="notes"><div><span>Salida</span>${esc(i.notas[0])}</div><div><span>Corazón</span>${esc(i.notas[1])}</div><div><span>Fondo</span>${esc(i.notas[2])}</div></div>`:'';
+  const msg=`Hola Noor Parfum 👋 Quiero ${pack?'el':'el perfume'} *${clean(d.nombre)}* (${PEN(d.precio)}) que vi en el catálogo. ¿Está disponible?`;
+  const para={Varones:'Para él',Damas:'Para ella',Unisex:'Unisex'}[d.para]||'';
+  return `<article class="card">${ph}<div class="body">
+    <div class="nm">${esc(clean(d.nombre))}</div>
+    <div class="meta">${pack?esc(d.descripcion||''):[esc(d.marca),d.ml?d.ml+' ml':'',para,esc(i.familia||'')].filter(Boolean).join(' · ')}</div>
+    ${i.parecido?`<span class="chip">Aroma parecido a ${esc(i.parecido)}</span>`:i.inspirado?`<div class="insp">${esc(i.inspirado)}</div>`:''}
+    ${notas}${i.ideal?`<div class="ideal">${esc(i.ideal)}</div>`:''}
+    <div class="foot"><div><div class="price">${p.normal&&p.normal>d.precio?`<s>Por separado ${PEN(p.normal)}</s>`:''}${PEN(d.precio)}</div>${p.disp<=1?'<div class="last">¡Última unidad!</div>':''}</div>
+    <a class="buy" href="${esc(wa(msg))}" target="_blank" rel="noopener">Pedir</a></div></div></article>`;
+}
+function render(){
+  const g=document.getElementById('grid');
+  let L=ITEMS.filter(p=>p.disp>0);
+  if(F)L=L.filter(p=>F==='Pack'||F==='Set'||F==='Body spray'?p.data.categoria===F:p.data.para===F&&['Perfume','Aceite','Set'].includes(p.data.categoria));
+  g.innerHTML=L.length?L.map(card).join(''):'<div class="empty" style="grid-column:1/-1">No hay productos disponibles en esta sección ahora. Escríbenos y te avisamos cuando lleguen.</div>';
+}
+document.getElementById('f').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;F=b.dataset.f;document.querySelectorAll('#f button').forEach(x=>x.classList.toggle('on',x===b));render()});
+(async()=>{
+  try{
+    const sb=supabase.createClient(NOOR_CONFIG.supabaseUrl,NOOR_CONFIG.supabaseAnonKey,{auth:{persistSession:false}});
+    const {data,error}=await sb.rpc('catalogo_publico');if(error)throw error;
+    const M={};data.forEach(r=>M[r.id]={id:r.id,data:r.data,disp:+r.disponible||0});
+    for(const p of Object.values(M)){const cs=p.data.componentes;if(Array.isArray(cs)&&cs.length){p.disp=Math.max(0,Math.min(...cs.map(c=>M[c.codigo]?Math.floor(M[c.codigo].disp/(+c.cant||1)):0)));p.normal=cs.reduce((t,c)=>t+(+M[c.codigo]?.data.precio||0)*(+c.cant||1),0)}}
+    const order={Pack:0,Set:1,Perfume:2,Aceite:3,'Body spray':4};
+    ITEMS=Object.values(M).sort((a,b)=>(order[a.data.categoria]??5)-(order[b.data.categoria]??5)||(+b.data.precio)-(+a.data.precio));
+    render();
+  }catch(e){console.error(e);document.getElementById('grid').innerHTML='<div class="empty" style="grid-column:1/-1">No pudimos cargar el catálogo. Escríbenos por WhatsApp al 926 252 995 y te enviamos las opciones.</div>'}
+})();
+</script>
+</body>
+</html>

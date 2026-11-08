@@ -17,6 +17,8 @@ y solo pueden entrar los dueños con su correo y contraseña.
 | `manifest.webmanifest`, `icons/` | Ícono y nombre al instalarla en el celular |
 | `supabase/schema.sql` | Tablas y reglas de seguridad (solo dueños) |
 | `supabase/seed.sql` | Datos iniciales copiados del Excel al 07/11/2026 |
+| `catalogo.html`, `catalogo/` | Catálogo público para clientes (stock real, sin datos internos) |
+| `supabase/003_packs_catalogo.sql` | Packs de regalo y función pública del catálogo |
 | `supabase/002_gastos_separados_socios.sql` | Tablas de gastos, separados y cuentas entre socios |
 | `app.js` | Lógica de la app |
 
@@ -26,10 +28,11 @@ y solo pueden entrar los dueños con su correo y contraseña.
 1. Crea una cuenta en supabase.com (puedes entrar con tu cuenta de GitHub) y un proyecto nuevo, región **South America (São Paulo)**.
 2. En **SQL Editor**, pega y ejecuta `supabase/schema.sql`.
 3. Ejecuta `supabase/002_gastos_separados_socios.sql`.
-4. Abre `supabase/seed.sql`, cambia los dos correos y nombres de los dueños y ejecútalo.
-5. En **Authentication › Sign In / Providers**, desactiva **Allow new users to sign up**.
-6. En **Authentication › Users › Add user › Create new user**, crea un usuario por dueño con su correo y una contraseña (marca *Auto Confirm User*).
-7. En **Project Settings › API** copia **Project URL** y la **Publishable key** y ponlos en `config.js` (ya configurado).
+4. Ejecuta `supabase/003_packs_catalogo.sql`.
+5. Abre `supabase/seed.sql`, cambia los dos correos y nombres de los dueños y ejecútalo.
+6. En **Authentication › Sign In / Providers**, desactiva **Allow new users to sign up**.
+7. En **Authentication › Users › Add user › Create new user**, crea un usuario por dueño con su correo y una contraseña (marca *Auto Confirm User*).
+8. En **Project Settings › API** copia **Project URL** y la **Publishable key** y ponlos en `config.js` (ya configurado).
 
 ### 2. GitHub Pages
 1. Sube esta carpeta a un repositorio (por ejemplo `noor-parfum-app`).
