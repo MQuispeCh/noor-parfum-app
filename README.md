@@ -65,3 +65,15 @@ y crea (o borra) su usuario en Authentication › Users.
 ## Cambios
 Cada cambio se hace como un commit en `main`; GitHub Pages publica la nueva versión sola.
 Para volver a una versión anterior: `git revert <commit>`.
+
+## Google Wallet (Tarjeta Noor)
+
+La función `supabase/functions/wallet/index.ts` crea y actualiza la tarjeta del cliente en Google Wallet. Las imágenes están en `wallet/`.
+
+1. **Cuenta de emisor:** entra a https://pay.google.com/business/console con la cuenta Google del negocio, crea el perfil de **Noor Parfum** y abre **Google Wallet API**. Copia el **Issuer ID** (un número largo).
+2. **Cuenta de servicio:** en https://console.cloud.google.com crea un proyecto (ej. `noor-wallet`), activa **Google Wallet API**, ve a **IAM y administración › Cuentas de servicio › Crear**, y en esa cuenta **Claves › Agregar clave › JSON**. Se descarga un archivo `.json` (es secreto: no lo compartas ni lo subas a GitHub).
+3. **Dar permiso:** en la consola de Google Pay & Wallet › **Usuarios › Invitar usuario**, pega el correo de la cuenta de servicio (termina en `iam.gserviceaccount.com`) con rol **Desarrollador**.
+4. **Función:** en Supabase › **Edge Functions › Deploy a new function › Via Editor**, nómbrala `wallet`, pega el contenido de `supabase/functions/wallet/index.ts` y despliégala. En su configuración, **desactiva "Verify JWT"** (el cliente la abre desde su tarjeta).
+5. **Secretos:** en Supabase › **Edge Functions › Secrets** agrega `GW_ISSUER_ID` (el número del paso 1) y `GW_SA_KEY` (todo el contenido del archivo `.json`).
+6. **Probar:** abre tu propia tarjeta en un Android y toca **Agregar a Google Wallet**. Mientras la cuenta esté en modo de prueba, solo pueden guardarla las cuentas Google que agregues como usuarios en la consola.
+7. **Publicar:** en la consola de Google Pay & Wallet pide **acceso de publicación** (Request publishing access). Cuando Google lo apruebe, cualquier cliente podrá guardarla.

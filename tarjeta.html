@@ -23,6 +23,7 @@
   --display:"Playfair Display",Georgia,serif; --body:"Montserrat",system-ui,sans-serif; --script:"Great Vibes",cursive;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html{background:var(--ink);color-scheme:dark}
 body{margin:0;min-height:100dvh;font-family:var(--body);color:var(--ivory);
   background:radial-gradient(120% 70% at 50% -10%,#2a2116 0%,transparent 60%),var(--ink);
@@ -77,6 +78,9 @@ header span{font-family:var(--display);letter-spacing:.32em;font-size:13px;font-
 .btn:hover{border-color:var(--gold3)}
 .btn.pri{background:linear-gradient(135deg,var(--gold2),var(--gold) 55%,var(--gold3));color:var(--ink);border:0}
 .btn svg{width:17px;height:17px;flex:none}
+.gw{background:#000;border:1px solid #5f6368;color:#fff;text-transform:none;letter-spacing:0;font:500 15px "Google Sans",Roboto,system-ui,sans-serif;padding:12px 18px}
+.gw svg{width:22px;height:22px}
+.gw small{display:block;font-size:11px;color:#bdc1c6;font-weight:400}
 .btn:focus-visible{outline:2px solid var(--gold2);outline-offset:3px}
 h2{font-family:var(--display);font-weight:600;font-size:20px;margin:34px 0 10px;color:var(--ivory)}
 .how{margin:0;padding:0;list-style:none;display:grid;gap:10px}
@@ -162,6 +166,7 @@ function show(T,code){
   <div class="btns">
     <a class="btn pri" href="${wa(pedir)}" target="_blank" rel="noopener">${WAICON}${e.listos.length?"Usar mi premio":"Pedir por WhatsApp"}</a>
     <a class="btn" href="catalogo.html">${BAG}Ver el catálogo</a>
+    <a class="btn gw" id="gw" hidden href="${esc(walletUrl(code))}" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="3" fill="#4285F4"/><path d="M2 9h20v4H2z" fill="#34A853"/><path d="M2 13h20v3H2z" fill="#FBBC04"/><path d="M2 16h20v1a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3z" fill="#EA4335"/></svg><span>Agregar a Google Wallet</span></a>
   </div>
   <h2>Cómo funciona</h2>
   <ul class="how">
@@ -176,6 +181,20 @@ function show(T,code){
   if(!still)app.querySelectorAll(".st.on").forEach((el,i)=>{el.style.animationDelay=(120+i*110)+"ms";el.classList.add("press")});
   requestAnimationFrame(()=>requestAnimationFrame(()=>{const b=app.querySelector(".bar i");if(b)b.style.width=b.dataset.w+"%"}));
   document.title=`Tarjeta Noor · ${T.nombre||"Noor Parfum"}`;
+  wallet(code);
+}
+const walletUrl=c=>`${NOOR_CONFIG.supabaseUrl}/functions/v1/wallet?c=${encodeURIComponent(c)}`;
+/* Google Wallet: el botón aparece solo en Android/computadora y solo si la conexión está activada.
+   La misma llamada pone al día la tarjeta si el cliente ya la guardó. */
+async function wallet(code){
+  try{
+    const r=await fetch(walletUrl(code)+"&sync=1");const j=await r.json();
+    if(!j.ok)return;
+    const b=document.getElementById("gw");if(!b)return;
+    if(/iPhone|iPad|iPod/i.test(navigator.userAgent)&&!j.guardada)return;
+    if(j.guardada)b.querySelector("span").innerHTML="Abrir en Google Wallet<small>Tus sellos ya están al día</small>";
+    b.hidden=false;
+  }catch(e){}
 }
 
 (async()=>{

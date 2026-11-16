@@ -255,6 +255,8 @@ function sellosDe(t,P){const k=telKey(t.telefono);if(k.length<9)return +t.extra|
 function estadoTarjeta(G,canjes,R){const meta=R.meta;const k=(canjes||[]).filter(c=>+c.en===meta).length;const cur=Math.max(0,G-k*meta);const ciclo=k+1;
   const listos=R.premios.filter(p=>p.en<=Math.min(cur,meta)&&!(canjes||[]).some(c=>+c.ciclo===ciclo&&+c.en===p.en));
   const sig=R.premios.find(p=>p.en>cur);return{meta,ciclo,cur:Math.min(cur,meta),sobra:Math.max(0,cur-meta),listos,sig,faltan:sig?sig.en-cur:0}}
+/* Pone al día la tarjeta en Google Wallet del cliente (si la guardó). No bloquea nada si falla. */
+const syncWallet=id=>{if(id&&window.NOOR_CONFIG)fetch(`${NOOR_CONFIG.supabaseUrl}/functions/v1/wallet?c=${encodeURIComponent(id)}&sync=1`).catch(()=>{})};
 const porEntregar=P=>S.tarj.reduce((a,t)=>a+estadoTarjeta(sellosDe(t,P),t.canjes,reglas()).listos.length,0);
 const linkTarjeta=id=>new URL('tarjeta.html?c='+encodeURIComponent(id),location.href.split('#')[0]).href;
 function nuevoCodigo(){const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789';const b=crypto.getRandomValues(new Uint8Array(10));return [...b].map(x=>A[x%A.length]).join('')}
@@ -296,7 +298,7 @@ function formTarjeta(id,pre){
       if(!nom)return $('t-e').textContent='Escribe el nombre del cliente.';
       if(telKey(tel).length<9)return $('t-e').textContent='Escribe el celular completo (9 dígitos): con él se suman los sellos.';
       const otra=tarjetaDe(tel);if(otra&&otra.id!==t?.id)return $('t-e').textContent=`Ese celular ya tiene tarjeta (${otra.nombre}).`;
-      if(t)return save(()=>api.update('tarjetas',t.id,{nombre:nom,telefono:tel}),'Tarjeta actualizada',$('t-e'));
+      if(t)return save(async()=>{await api.update('tarjetas',t.id,{nombre:nom,telefono:tel});syncWallet(t.id)},'Tarjeta actualizada',$('t-e'));
       const doc={nombre:nom,telefono:tel,desde:$('t-a').checked?'':today(),extra:0,canjes:[],creado:Date.now(),por:S.email};const nid=nuevoCodigo();
       save(()=>api.set('tarjetas',nid,doc),'Tarjeta creada · envíasela por WhatsApp',$('t-e'))};
   });
@@ -307,7 +309,7 @@ function formSellos(id){
    <form class="f" onsubmit="return false"><label class="full">Sellos a sumar (usa un número negativo para quitar)<input id="s-n" type="number" step="1" value="1"></label></form><div class="small muted">Ajuste manual actual: ${+t.extra||0}</div><div class="err" id="s-e"></div>
    <div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pri" id="s-s">Guardar</button></div>`,ov=>{
     const $=$in(ov);$('s-s').onclick=()=>{const n=Math.trunc(+$('s-n').value||0);if(!n)return $('s-e').textContent='Escribe cuántos sellos sumar o quitar.';
-      save(()=>api.update('tarjetas',id,{extra:(+t.extra||0)+n}),n>0?`+${n} ${n===1?'sello':'sellos'}`:`${n} sellos`,$('s-e'))};
+      save(async()=>{await api.update('tarjetas',id,{extra:(+t.extra||0)+n});syncWallet(id)},n>0?`+${n} ${n===1?'sello':'sellos'}`:`${n} sellos`,$('s-e'))};
   });
 }
 function formCanje(id,en){
@@ -316,7 +318,7 @@ function formCanje(id,en){
   open(`<h3>Entregar premio</h3><p><b>${esc(t.nombre)}</b> recibe: <b>${esc(p.premio)}</b></p>${+en===e.meta?`<p class="small muted">Con este premio su tarjeta se completa y empieza una nueva desde 0.${pend.length?` <b>Ojo:</b> todavía tiene sin entregar “${esc(pend.map(x=>x.premio).join(', '))}”; entrégalo antes o se pierde.`:''}</p>`:''}
    <form class="f" onsubmit="return false"><label class="full">Nota (opcional)<input id="c-n" placeholder="Ej. le dimos el body spray Z9"></label></form><div class="err" id="c-e"></div>
    <div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pri" id="c-s">Marcar como entregado</button></div>`,ov=>{
-    const $=$in(ov);$('c-s').onclick=()=>save(()=>api.update('tarjetas',id,{canjes:[...(t.canjes||[]),{ciclo:e.ciclo,en:p.en,premio:p.premio,fecha:today(),nota:$('c-n').value.trim(),por:S.email}]}),'Premio entregado',$('c-e'));
+    const $=$in(ov);$('c-s').onclick=()=>save(async()=>{await api.update('tarjetas',id,{canjes:[...(t.canjes||[]),{ciclo:e.ciclo,en:p.en,premio:p.premio,fecha:today(),nota:$('c-n').value.trim(),por:S.email}]});syncWallet(id)},'Premio entregado',$('c-e'));
   });
 }
 function formReglas(){
@@ -331,7 +333,7 @@ function formReglas(){
       if(premios.some(p=>p.en>meta))return $('r-e').textContent=`Ningún premio puede estar después del sello ${meta}.`;
       if(!premios.some(p=>p.en===meta))return $('r-e').textContent=`El último premio debe estar en el sello ${meta} (al completar la tarjeta).`;
       if(new Set(premios.map(p=>p.en)).size<premios.length)return $('r-e').textContent='Dos premios no pueden estar en el mismo sello.';
-      save(()=>api.set('ajustes','fidelidad',{meta,premios:premios.sort((a,b)=>a.en-b.en)}),'Reglas guardadas',$('r-e'))};
+      save(async()=>{await api.set('ajustes','fidelidad',{meta,premios:premios.sort((a,b)=>a.en-b.en)});S.tarj.forEach(t=>syncWallet(t.id))},'Reglas guardadas',$('r-e'))};
   });
 }
 
@@ -382,12 +384,12 @@ function formVenta(){
           cliente:$('v-cl').value.trim(),telefono:$('v-tel').value.trim(),canal:$('v-ca').value,pago:$('v-pg').value,cobros:pp>0?[{fecha:f,monto:pp,metodo,recibio:$('v-rc').value}]:[],pagado:pp,
           notas:[p.nombre+(c>1?' ×'+c:''),$('v-n').value.trim()].filter(Boolean).join(' · '),pack:p.id,creado:Date.now()+i,por:S.email}});
         const ts=tarjetaDe($('v-tel').value),ns=docs.filter(d=>cuentaSello(P[d.codigo])).reduce((a,d)=>a+d.cant,0);
-        return save(async()=>{for(const d of docs)await api.add('movimientos',d)},'Venta del pack guardada'+(ts&&ns?` · +${ns} ${ns===1?'sello':'sellos'} en la tarjeta de ${ts.nombre.split(' ')[0]}`:''),$('v-e'))}
+        return save(async()=>{for(const d of docs)await api.add('movimientos',d);if(ts&&ns)syncWallet(ts.id)},'Venta del pack guardada'+(ts&&ns?` · +${ns} ${ns===1?'sello':'sellos'} en la tarjeta de ${ts.nombre.split(' ')[0]}`:''),$('v-e'))}
       const doc={fecha:f,tipo:'Venta',codigo:p.id,cant:c,precio:+$('v-pr').value||0,descuento:+$('v-d').value||0,total:t,costoUnit:r2(p.costo),
         cliente:$('v-cl').value.trim(),telefono:$('v-tel').value.trim(),canal:$('v-ca').value,pago:$('v-pg').value,
         cobros:pa>0?[{fecha:f,monto:pa,metodo,recibio:$('v-rc').value}]:[],pagado:pa,notas:$('v-n').value.trim(),creado:Date.now(),por:S.email};
       const ts=tarjetaDe(doc.telefono);
-      save(()=>api.add('movimientos',doc),'Venta guardada'+(ts&&cuentaSello(p)?` · +${c} ${c===1?'sello':'sellos'} en la tarjeta de ${ts.nombre.split(' ')[0]}`:''),$('v-e'))};
+      save(async()=>{await api.add('movimientos',doc);if(ts&&cuentaSello(p))syncWallet(ts.id)},'Venta guardada'+(ts&&cuentaSello(p)?` · +${c} ${c===1?'sello':'sellos'} en la tarjeta de ${ts.nombre.split(' ')[0]}`:''),$('v-e'))};
   });
 }
 function formEditMov(id){
