@@ -19,6 +19,8 @@ y solo pueden entrar los dueños con su correo y contraseña.
 | `supabase/seed.sql` | Datos iniciales copiados del Excel al 07/11/2026 |
 | `catalogo.html`, `catalogo/` | Catálogo público para clientes (stock real, sin datos internos) |
 | `supabase/003_packs_catalogo.sql` | Packs de regalo y función pública del catálogo |
+| `supabase/004_tarjeta_fidelidad.sql` | Tarjeta de fidelidad virtual (tabla `tarjetas`, reglas y función pública) |
+| `tarjeta.html` | Tarjeta virtual que ve el cliente (`tarjeta.html?c=CÓDIGO`) |
 | `supabase/002_gastos_separados_socios.sql` | Tablas de gastos, separados y cuentas entre socios |
 | `app.js` | Lógica de la app |
 
@@ -29,6 +31,7 @@ y solo pueden entrar los dueños con su correo y contraseña.
 2. En **SQL Editor**, pega y ejecuta `supabase/schema.sql`.
 3. Ejecuta `supabase/002_gastos_separados_socios.sql`.
 4. Ejecuta `supabase/003_packs_catalogo.sql`.
+5. Ejecuta `supabase/004_tarjeta_fidelidad.sql`.
 5. Abre `supabase/seed.sql`, cambia los dos correos y nombres de los dueños y ejecútalo.
 6. En **Authentication › Sign In / Providers**, desactiva **Allow new users to sign up**.
 7. En **Authentication › Users › Add user › Create new user**, crea un usuario por dueño con su correo y una contraseña (marca *Auto Confirm User*).

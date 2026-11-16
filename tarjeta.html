@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0B0B0D">
+<meta name="robots" content="noindex">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tarjeta Noor">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>Tarjeta Noor · Noor Parfum</title>
+<meta property="og:title" content="Tu Tarjeta Noor">
+<meta property="og:description" content="Suma sellos con cada perfume y gana regalos en Noor Parfum.">
+<meta property="og:image" content="icons/icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Montserrat:wght@400;500;600;700&display=swap">
+<style>
+/* Una sola pantalla: la tarjeta (objeto de lujo, negro y dorado) arriba, y debajo lo que el cliente hace con ella. */
+:root{
+  --ink:#0B0B0D; --ivory:#F7F1E6; --gold:#D4AF7C; --gold2:#ECD5A8; --gold3:#A8824C; --muted:#B5AA97; --line:#2C261D;
+  --display:"Playfair Display",Georgia,serif; --body:"Montserrat",system-ui,sans-serif; --script:"Great Vibes",cursive;
+}
+*{box-sizing:border-box}
+html{background:var(--ink);color-scheme:dark}
+body{margin:0;min-height:100dvh;font-family:var(--body);color:var(--ivory);
+  background:radial-gradient(120% 70% at 50% -10%,#2a2116 0%,transparent 60%),var(--ink);
+  -webkit-font-smoothing:antialiased;padding:max(18px,env(safe-area-inset-top)) 18px max(28px,env(safe-area-inset-bottom))}
+::selection{background:var(--gold);color:var(--ink)}
+a{color:inherit}
+.wrap{max-width:440px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:center;gap:10px;margin:4px 0 18px}
+header img{width:30px;height:auto}
+header span{font-family:var(--display);letter-spacing:.32em;font-size:13px;font-weight:600;color:var(--gold2)}
+
+/* La tarjeta */
+.card{position:relative;border-radius:22px;padding:22px 20px 20px;overflow:hidden;isolation:isolate;
+  background:linear-gradient(155deg,#1b1712 0%,#0f0d0a 46%,#17130d 100%);
+  border:1px solid #3a3020;box-shadow:0 30px 60px -20px #000,0 2px 0 0 #ffffff0d inset}
+.card::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.55;
+  background:repeating-linear-gradient(115deg,transparent 0 14px,#d4af7c08 14px 15px)}
+.card::after{content:"";position:absolute;width:280px;height:280px;right:-120px;top:-140px;z-index:-1;border-radius:50%;
+  background:radial-gradient(closest-side,#d4af7c2e,transparent)}
+.ctop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.ctitle{font-family:var(--display);font-size:13px;letter-spacing:.28em;color:var(--gold);font-weight:600}
+.cname{font-family:var(--script);font-size:44px;line-height:1;color:var(--gold2);margin:14px 0 2px;min-height:44px}
+.csub{font-size:12px;color:var(--muted)}
+.mark{width:46px;height:auto;opacity:.95}
+.grid{display:grid;grid-template-columns:repeat(var(--cols,3),1fr);gap:26px 14px;margin:22px 0 14px}
+.st{aspect-ratio:1;border-radius:50%;display:grid;place-items:center;position:relative;
+  border:1.5px dashed #5b4c33;color:#7f7058;font:600 15px var(--display);font-variant-numeric:lining-nums}
+.st small{position:absolute;bottom:-17px;left:50%;transform:translateX(-50%);font:600 9px var(--body);letter-spacing:.12em;color:var(--gold3);white-space:nowrap;text-transform:uppercase}
+.st svg{width:42%;height:42%;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.st.gift{border-style:solid;border-color:var(--gold3);color:var(--gold)}
+.st.on{border:0;color:var(--ink);background:radial-gradient(circle at 32% 28%,#fff3d6 0%,var(--gold2) 22%,var(--gold) 55%,var(--gold3) 100%);
+  box-shadow:0 6px 14px -4px #000c,inset 0 -3px 6px #00000038,inset 0 2px 3px #ffffff80}
+.st.on img{width:58%;height:auto;filter:brightness(0) saturate(100%);opacity:.78}
+.st.on.press{animation:press .62s cubic-bezier(.16,1,.3,1) both}
+@keyframes press{0%{transform:scale(1.35) rotate(-14deg);opacity:0;filter:blur(3px)}60%{opacity:1;filter:blur(0)}100%{transform:none;opacity:1}}
+.cfoot{display:flex;justify-content:space-between;align-items:flex-end;margin-top:26px;gap:10px}
+.count{font-family:var(--display);font-size:30px;font-weight:600;color:var(--ivory);font-variant-numeric:lining-nums}
+.count span{font-size:15px;color:var(--muted)}
+.code{font-size:10px;letter-spacing:.2em;color:#7f7058;text-align:right}
+
+/* Debajo de la tarjeta */
+.msg{margin:22px 2px 0;font-size:15px;line-height:1.55;text-wrap:pretty}
+.msg b{color:var(--gold2);font-weight:600}
+.bar{height:4px;border-radius:4px;background:#2a241a;margin-top:12px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold3),var(--gold2));border-radius:4px;transition:width 1.1s cubic-bezier(.16,1,.3,1) .5s}
+.prize{margin-top:18px;border-radius:16px;padding:16px;background:linear-gradient(135deg,#d4af7c24,#d4af7c0d);border:1px solid #d4af7c66;display:flex;gap:12px;align-items:flex-start}
+.prize svg{width:26px;height:26px;flex:none;fill:none;stroke:var(--gold2);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;margin-top:2px}
+.prize b{display:block;font-family:var(--display);font-size:18px;font-weight:600;color:var(--gold2)}
+.prize p{margin:3px 0 0;font-size:13px;color:var(--muted);line-height:1.45}
+.btns{display:grid;gap:10px;margin-top:20px}
+.btn{display:flex;align-items:center;justify-content:center;gap:9px;text-decoration:none;border-radius:999px;padding:15px 18px;font:700 12px var(--body);letter-spacing:.14em;text-transform:uppercase;border:1px solid #4a3e2b;color:var(--ivory);background:#15120e;cursor:pointer;transition:background .2s,border-color .2s}
+.btn:hover{border-color:var(--gold3)}
+.btn.pri{background:linear-gradient(135deg,var(--gold2),var(--gold) 55%,var(--gold3));color:var(--ink);border:0}
+.btn svg{width:17px;height:17px;flex:none}
+.btn:focus-visible{outline:2px solid var(--gold2);outline-offset:3px}
+h2{font-family:var(--display);font-weight:600;font-size:20px;margin:34px 0 10px;color:var(--ivory)}
+.how{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.how li{display:flex;gap:12px;align-items:baseline;font-size:14px;line-height:1.5;color:#e2d8c6}
+.how li b{color:var(--gold);font-family:var(--display);font-size:16px;min-width:18px}
+.rules{margin-top:10px;font-size:13px;color:var(--muted);line-height:1.6}
+.rules strong{color:var(--ivory);font-weight:600}
+.save{margin-top:28px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);line-height:1.55}
+.save b{color:var(--ivory);font-weight:600}
+.hist{margin-top:10px;font-size:13px;color:var(--muted)}
+.hist div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.hist div span:last-child{white-space:nowrap}
+.slogan{text-align:center;font-family:var(--script);font-size:24px;color:var(--gold3);margin-top:30px}
+.state{text-align:center;padding:50px 10px;color:var(--muted);line-height:1.6}
+.state b{display:block;font-family:var(--display);font-size:22px;color:var(--ivory);margin-bottom:8px;font-weight:600}
+.skel{height:300px;border-radius:22px;background:linear-gradient(100deg,#15120e 30%,#1f1a13 50%,#15120e 70%);background-size:300% 100%;animation:sk 1.4s linear infinite}
+@keyframes sk{to{background-position:-150% 0}}
+@media (prefers-reduced-motion:reduce){.st.on.press{animation:none}.bar i{transition:none}.skel{animation:none}}
+@media (min-width:600px){body{padding-top:40px}.cname{font-size:52px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><img src="icons/logo.png" alt=""><span>NOOR PARFUM</span></header>
+  <main id="app"><div class="skel" aria-label="Cargando tu tarjeta"></div></main>
+  <div class="slogan">Deja que tu esencia hable</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script src="config.js?v=20261115a"></script>
+<script>
+const WA="51926252995";
+const app=document.getElementById("app");
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const GIFT='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg>';
+const WAICON='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.4.1-.6l.4-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3zM12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/></svg>';
+const BAG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l1 14H5L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>';
+const fdate=s=>{if(!s)return"";const [y,m,d]=s.split("-");return `${d}/${m}/${y}`};
+const wa=t=>`https://wa.me/${WA}?text=${encodeURIComponent(t)}`;
+
+/* Mismo cálculo que la app de control (app.js › estadoTarjeta) */
+function estado(G,canjes,R){
+  const meta=+R.meta||6,premios=[...(R.premios||[])].sort((a,b)=>a.en-b.en);
+  const k=(canjes||[]).filter(c=>+c.en===meta).length,cur=Math.max(0,G-k*meta),ciclo=k+1;
+  const listos=premios.filter(p=>p.en<=Math.min(cur,meta)&&!(canjes||[]).some(c=>+c.ciclo===ciclo&&+c.en===p.en));
+  const sig=premios.find(p=>p.en>cur);
+  return{meta,premios,ciclo,cur:Math.min(cur,meta),sobra:Math.max(0,cur-meta),listos,sig,faltan:sig?sig.en-cur:0};
+}
+
+function fail(t,s){app.innerHTML=`<div class="state"><b>${t}</b>${s}<div class="btns" style="margin-top:24px"><a class="btn pri" href="${wa("Hola Noor Parfum 👋, quiero mi Tarjeta Noor de cliente frecuente.")}" target="_blank" rel="noopener">${WAICON}Escríbenos por WhatsApp</a><a class="btn" href="catalogo.html">${BAG}Ver el catálogo</a></div></div>`}
+
+function show(T,code){
+  const e=estado(+T.sellos||0,T.canjes,T.reglas||{});
+  const cols=e.meta%3===0?3:e.meta%4===0?4:e.meta<=5?e.meta:3;
+  let st="";
+  for(let i=1;i<=e.meta;i++){
+    const pr=e.premios.find(p=>p.en===i),on=i<=e.cur;
+    st+=`<div class="st${on?" on":""}${pr?" gift":""}" data-i="${i}" aria-label="Sello ${i}${on?" (ganado)":""}${pr?": "+esc(pr.premio):""}">${on?'<img src="icons/logo.png" alt="">':pr?GIFT:i}${pr?`<small>Premio</small>`:""}</div>`;
+  }
+  const n=esc(T.nombre||"");
+  let msg;
+  if(e.listos.length) msg=`¡Felicidades${n?", "+n:""}! Ganaste <b>${esc(e.listos.map(p=>p.premio).join(" + "))}</b>.`;
+  else if(e.sig) msg=e.cur===0&&e.ciclo===1
+    ?`Tu tarjeta ya está activa. Con cada perfume que compres sumas un sello: a los <b>${e.sig.en}</b> ganas <b>${esc(e.sig.premio)}</b>.`
+    :`Te ${e.faltan===1?"falta <b>1 sello</b>":`faltan <b>${e.faltan} sellos</b>`} para <b>${esc(e.sig.premio)}</b>.`;
+  else msg="¡Completaste tu tarjeta!";
+  const pct=e.sig?Math.round(e.cur/e.sig.en*100):100;
+  const prize=e.listos.length?`<div class="prize">${GIFT}<div><b>Tienes un premio listo</b><p>${esc(e.listos.map(p=>p.premio).join(" + "))}. Escríbenos y lo usas en tu próxima compra.</p></div></div>`:"";
+  const pedir=e.listos.length
+    ?`Hola Noor Parfum 👋, soy ${T.nombre||""}. Quiero usar mi premio de la Tarjeta Noor: ${e.listos.map(p=>p.premio).join(" + ")} (código ${code}).`
+    :`Hola Noor Parfum 👋, soy ${T.nombre||""} (Tarjeta Noor ${code}). Quiero hacer un pedido.`;
+  const hist=(T.canjes||[]).slice(-5).reverse();
+  app.innerHTML=`
+  <section class="card" aria-label="Tarjeta Noor de ${n}">
+    <div class="ctop"><div><div class="ctitle">TARJETA NOOR</div><div class="csub">Cliente frecuente${e.ciclo>1?` · tarjeta n.º ${e.ciclo}`:""}</div></div><img class="mark" src="icons/logo.png" alt=""></div>
+    <div class="cname">${n||"Cliente Noor"}</div>
+    <div class="grid" style="--cols:${cols}">${st}</div>
+    <div class="cfoot"><div class="count">${e.cur}<span> / ${e.meta} sellos</span></div><div class="code">${esc(code.replace(/(.{5})/,"$1 "))}${T.desde?`<br>desde ${fdate(T.desde)}`:""}</div></div>
+  </section>
+  <p class="msg">${msg}${e.sobra?` Ya tienes <b>${e.sobra}</b> ${e.sobra===1?"sello":"sellos"} para tu siguiente tarjeta.`:""}</p>
+  ${e.sig&&!e.listos.length?`<div class="bar" role="progressbar" aria-valuenow="${e.cur}" aria-valuemin="0" aria-valuemax="${e.sig.en}"><i data-w="${pct}"></i></div>`:""}
+  ${prize}
+  <div class="btns">
+    <a class="btn pri" href="${wa(pedir)}" target="_blank" rel="noopener">${WAICON}${e.listos.length?"Usar mi premio":"Pedir por WhatsApp"}</a>
+    <a class="btn" href="catalogo.html">${BAG}Ver el catálogo</a>
+  </div>
+  <h2>Cómo funciona</h2>
+  <ul class="how">
+    <li><b>1</b><span>Compra en Noor Parfum dando tu número de celular.</span></li>
+    <li><b>2</b><span>Cada perfume o set suma <strong style="color:var(--ivory)">1 sello</strong> aquí, sin que hagas nada.</span></li>
+    <li><b>3</b><span>Al llegar a un regalo, escríbenos y lo usas en tu siguiente compra.</span></li>
+  </ul>
+  <div class="rules">${e.premios.map(p=>`<strong>${p.en} sellos:</strong> ${esc(p.premio)}`).join("<br>")}<br>Al completar los ${e.meta} sellos empiezas una tarjeta nueva.</div>
+  ${hist.length?`<h2>Premios recibidos</h2><div class="hist">${hist.map(c=>`<div><span>${esc(c.premio||"")}</span><span>${fdate(c.fecha)}</span></div>`).join("")}</div>`:""}
+  <div class="save"><b>Guárdala en tu celular:</b> en iPhone toca Compartir › <b>Agregar a pantalla de inicio</b>. En Android, menú ⋮ › <b>Agregar a pantalla principal</b>. Así la tienes siempre a la mano.</div>`;
+  const still=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(!still)app.querySelectorAll(".st.on").forEach((el,i)=>{el.style.animationDelay=(120+i*110)+"ms";el.classList.add("press")});
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{const b=app.querySelector(".bar i");if(b)b.style.width=b.dataset.w+"%"}));
+  document.title=`Tarjeta Noor · ${T.nombre||"Noor Parfum"}`;
+}
+
+(async()=>{
+  const code=(new URLSearchParams(location.search).get("c")||"").trim().toUpperCase();
+  if(code.length<8)return fail("Pide tu Tarjeta Noor","Compra en Noor Parfum y te enviamos por WhatsApp tu tarjeta de cliente frecuente para sumar sellos y ganar regalos.");
+  try{
+    const sb=supabase.createClient(NOOR_CONFIG.supabaseUrl,NOOR_CONFIG.supabaseAnonKey,{auth:{persistSession:false}});
+    const {data,error}=await sb.rpc("tarjeta_publica",{p_codigo:code});
+    if(error)throw error;
+    if(!data)return fail("No encontramos esta tarjeta","Revisa que el link esté completo o escríbenos y te lo enviamos de nuevo.");
+    show(data,code);
+  }catch(err){
+    console.error(err);
+    fail("No pudimos cargar tu tarjeta","Revisa tu conexión a internet y vuelve a abrir el link. Si sigue igual, escríbenos.");
+  }
+})();
+</script>
+</body>
+</html>
