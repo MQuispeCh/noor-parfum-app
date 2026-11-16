@@ -35,7 +35,7 @@ y solo pueden entrar los dueños con su correo y contraseña.
 6. Abre `supabase/seed.sql`, cambia los dos correos y nombres de los dueños y ejecútalo.
 7. En **Authentication › Sign In / Providers**, desactiva **Allow new users to sign up**.
 8. En **Authentication › Users › Add user › Create new user**, crea un usuario por dueño con su correo y una contraseña (marca *Auto Confirm User*).
-8. En **Project Settings › API** copia **Project URL** y la **Publishable key** y ponlos en `config.js` (ya configurado).
+9. En **Project Settings › API** copia **Project URL** y la **Publishable key** y ponlos en `config.js` (ya configurado).
 
 ### 2. GitHub Pages
 1. Sube esta carpeta a un repositorio (por ejemplo `noor-parfum-app`).
