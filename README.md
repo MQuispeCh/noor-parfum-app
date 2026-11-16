@@ -32,9 +32,9 @@ y solo pueden entrar los dueños con su correo y contraseña.
 3. Ejecuta `supabase/002_gastos_separados_socios.sql`.
 4. Ejecuta `supabase/003_packs_catalogo.sql`.
 5. Ejecuta `supabase/004_tarjeta_fidelidad.sql`.
-5. Abre `supabase/seed.sql`, cambia los dos correos y nombres de los dueños y ejecútalo.
-6. En **Authentication › Sign In / Providers**, desactiva **Allow new users to sign up**.
-7. En **Authentication › Users › Add user › Create new user**, crea un usuario por dueño con su correo y una contraseña (marca *Auto Confirm User*).
+6. Abre `supabase/seed.sql`, cambia los dos correos y nombres de los dueños y ejecútalo.
+7. En **Authentication › Sign In / Providers**, desactiva **Allow new users to sign up**.
+8. En **Authentication › Users › Add user › Create new user**, crea un usuario por dueño con su correo y una contraseña (marca *Auto Confirm User*).
 8. En **Project Settings › API** copia **Project URL** y la **Publishable key** y ponlos en `config.js` (ya configurado).
 
 ### 2. GitHub Pages
