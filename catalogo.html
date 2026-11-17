@@ -209,7 +209,7 @@ const P=[{"k": "hawas_fire", "n": "Hawas Fire", "b": "Rasasi", "ml": "100 ml", "
 const WA="51926252995",PERF=["el","ella","unisex"];
 const PROMO=(()=>{const d=new Date();return d.getFullYear()===2026&&d.getMonth()===10})(); /* promo body spray: solo noviembre 2026 */
 const XMAS=(()=>{const d=new Date();return d.getFullYear()===2026&&d.getMonth()===11&&d.getDate()<=25})(); /* banner navideño: 1 al 25 de diciembre */
-const wa=t=>"https://wa.me/"+WA+"?text="+encodeURIComponent(t);
+const wa=t=>"https://api.whatsapp.com/send?phone="+WA+"&text="+encodeURIComponent(t);
 const $=id=>document.getElementById(id);
 const stage=$("stage"),info=$("info"),glow=$("glow");
 $("cta").href=wa("Hola Noor Parfum 👋 Quiero ver el catálogo.");

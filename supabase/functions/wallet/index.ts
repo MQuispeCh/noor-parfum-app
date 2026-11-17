@@ -92,7 +92,7 @@ export function buildObject(issuer: string, code: string, T: Tarjeta) {
     linksModuleData: { uris: [
       { id: "tarjeta", uri: link, description: "Ver mi tarjeta" },
       { id: "catalogo", uri: `${SITE}/catalogo.html`, description: "Ver el catálogo" },
-      { id: "whatsapp", uri: `https://wa.me/${WA}?text=${encodeURIComponent(`Hola Noor Parfum 👋, soy ${T.nombre || ""} (Tarjeta Noor ${code}).`)}`, description: "Escribir por WhatsApp" },
+      { id: "whatsapp", uri: `https://api.whatsapp.com/send?phone=${WA}&text=${encodeURIComponent(`Hola Noor Parfum 👋, soy ${T.nombre || ""} (Tarjeta Noor ${code}).`)}`, description: "Escribir por WhatsApp" },
     ] },
   };
 }

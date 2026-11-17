@@ -24,7 +24,7 @@ const yo=()=>S.names[S.email]||socios()[0];
 const socioOpts=(sel,extra)=>[...socios(),...(extra||[])].map(n=>`<option ${n===sel?'selected':''}>${esc(n)}</option>`).join('');
 const cajaOpts=sel=>`<option ${!sel||sel===CAJA?'selected':''}>${CAJA}</option>`+socioOpts(sel,[]);
 const payOpts=sel=>`<option ${!sel||sel===CAJA?'selected':''}>${CAJA}</option><option ${sel===AMBOS?'selected':''}>${AMBOS}</option>`+socioOpts(sel,[]);
-function waLink(tel,txt){const d=String(tel||'').replace(/\D/g,'');const num=d?(d.length===9?'51'+d:d):'';return `https://wa.me/${num}?text=${encodeURIComponent(txt)}`}
+function waLink(tel,txt){const d=String(tel||'').replace(/\D/g,'');const num=d?(d.length===9?'51'+d:d):'';return `https://api.whatsapp.com/send?${num?'phone='+num+'&':''}text=${encodeURIComponent(txt)}`}
 
 /* cobros: cada entrada {fecha,monto,metodo,recibio}. Ventas antiguas solo tenían "pagado". */
 function cobrosOf(m){if(Array.isArray(m.cobros))return m.cobros;const c=[];const ab=m.abonos||[];const ini=(+m.pagado||0)-ab.reduce((s,a)=>s+(+a.monto||0),0);
