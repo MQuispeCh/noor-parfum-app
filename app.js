@@ -1,9 +1,9 @@
 /* Noor Parfum · Control — lógica de la app
    Datos en Supabase: cada tabla guarda {id, data(jsonb)}.
    Tablas: productos, compras, movimientos, gastos, separados, socios_mov, ajustes, duenos. */
-const TABLES=['productos','movimientos','compras','gastos','separados','socios_mov','ajustes','tarjetas'];
-const S={tarj:[],prod:{},mov:[],comp:[],gastos:[],sep:[],smov:[],ajustes:{},ready:{},sb:null,email:null,names:{},view:'resumen',q:'',fcat:'',fstock:''};
-const VIEWS=['resumen','inventario','ventas','separados','cobranza','gastos','compras','socios','tarjetas','instrucciones'];
+const TABLES=['productos','movimientos','compras','gastos','separados','socios_mov','ajustes','tarjetas','resenas'];
+const S={tarj:[],res:[],prod:{},mov:[],comp:[],gastos:[],sep:[],smov:[],ajustes:{},ready:{},sb:null,email:null,names:{},view:'resumen',q:'',fcat:'',fstock:''};
+const VIEWS=['resumen','inventario','ventas','separados','cobranza','gastos','compras','socios','tarjetas','resenas','instrucciones'];
 const YAPE_DEF='952 894 623';
 const yape=()=>S.ajustes.negocio?.yape||YAPE_DEF;
 const SIN='Sin asignar';
@@ -101,7 +101,7 @@ function render(){
   const apart=S.sep.filter(s=>s.estado==='Apartado');
   document.querySelectorAll('#nav a').forEach(a=>{const v=a.dataset.v;a.classList.toggle('on',v===S.view);
     const n=v==='cobranza'?debts.length:v==='separados'?apart.length:v==='tarjetas'?porEntregar(P):0;a.innerHTML=a.dataset.l+(n?`<span class="n">${n}</span>`:'')});
-  const v={resumen,inventario,ventas,separados,cobranza,gastos,compras,socios:vSocios,tarjetas:vTarjetas,instrucciones}[S.view]||resumen;
+  const v={resumen,inventario,ventas,separados,cobranza,gastos,compras,socios:vSocios,tarjetas:vTarjetas,resenas:vResenas,instrucciones}[S.view]||resumen;
   document.getElementById('main').innerHTML=v(P,T,debts,apart);
   bind();
 }
@@ -194,7 +194,7 @@ function ventas(P){
    const rec=[...new Set(cobrosOf(m).map(c=>c.recibio))];
    return `<tr><td class="muted">${fdate(m.fecha)}</td><td><b>${esc(p?.nombre||m.codigo)}</b>${m.cant>1?` <span class="muted">×${m.cant}</span>`:''}<div class="small muted">${esc(m.cliente||'—')}${m.telefono?' · '+esc(m.telefono):''} · ${esc(m.canal||'')} · ${esc(m.pago||'')}${m.notas?'<br>'+esc(m.notas):''}${rec.length?'<br>Entró a: '+rec.map(esc).join(', '):''}${who(m.por)?' · Registró: '+esc(who(m.por)):''}</div></td>
    <td class="r">${m.tipo==='Venta'||m.tipo==='Devolución'?PEN(m.total):'—'}${+m.descuento?`<div class="small muted">dscto ${PEN(m.descuento)}</div>`:''}</td><td class="r hide-m">${g==null?'—':PEN(g)}</td><td>${payPill(m)}</td>
-   <td class="r nowrap"><button class="btn sm" data-a="editm" data-id="${esc(m.id)}">Editar</button> <button class="btn sm danger" data-a="delm" data-id="${esc(m.id)}">Borrar</button></td></tr>`}).join('');
+   <td class="r nowrap">${m.tipo==='Venta'?resenaBtn(m):''}<button class="btn sm" data-a="editm" data-id="${esc(m.id)}">Editar</button> <button class="btn sm danger" data-a="delm" data-id="${esc(m.id)}">Borrar</button></td></tr>`}).join('');
   return head('Ventas y salidas','Ventas, obsequios, frascos abiertos para decants y devoluciones','<button class="btn" data-a="salida">+ Otra salida</button><button class="btn pri" data-a="venta">+ Registrar venta</button>')+`
   <div class="box tblw"><table><thead><tr><th>Fecha</th><th>Detalle</th><th class="r">Total</th><th class="r hide-m">Ganancia</th><th>Pago</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="empty">Aún no hay ventas. Registra la primera con el botón de arriba.</td></tr>'}</tbody></table></div>`;
 }
@@ -272,6 +272,7 @@ function instrucciones(){
    <div class="box"><h3>Cobrar una deuda</h3><ol><li>Entra a <b>Por cobrar</b>. Las deudas están agrupadas por cliente.</li><li>Toca <b>Recordar por WhatsApp</b>: se abre WhatsApp con el mensaje y el saldo listos para enviar.</li><li>Cuando te paguen, toca <b>Registrar pago</b> y escribe el monto.</li></ol></div>
    <div class="box"><h3>Separados y encargos</h3><ol><li>En <b>Separados › + Nuevo separado</b> registra al cliente, el perfume y el adelanto (tu regla: 50%).</li><li>Si el perfume está en stock, queda apartado y nadie más lo puede vender. Si no hay, márcalo como <b>Encargo</b>.</li><li>Con <b>Abono</b> registras pagos parciales; con <b>WhatsApp</b> le avisas cuánto le falta.</li><li>Al entregarlo toca <b>Entregar</b>: se convierte en venta y, si aún debe algo, pasa a Por cobrar.</li><li>Si el cliente se arrepiente, <b>Cancelar</b> registra cuánto le devolviste.</li></ol></div>
    <div class="box"><h3>Catálogo para clientes</h3><p>La dirección <b>…/noor-parfum-app/catalogo.html</b> es pública: vitrina con fotos, notas y precios, buscador, carrito y pedido por WhatsApp. El stock sale solo de esta app: si un perfume se queda en 1 aparece “¡Última unidad!” y si llega a 0 aparece “A pedido”. Cada perfume tiene su propio link para compartir (botón Compartir). Ponla en la biografía de Instagram y TikTok.</p></div>
+   <div class="box"><h3>Reseñas</h3><ol><li>Unos días después de la entrega, en <b>Ventas</b> toca <b>Pedir reseña</b> en esa venta: se abre WhatsApp con el mensaje y un link único.</li><li>El cliente elige las estrellas y, si quiere, deja un comentario. Se publica sola en el catálogo como <b>compra verificada</b>.</li><li>En la pestaña <b>Reseñas</b> respóndelas: tu respuesta también se ve en el catálogo.</li></ol><p class="small muted">Oculta una reseña solo si es ofensiva o spam. Cada link sirve una sola vez, así nadie puede inventar opiniones.</p></div>
    <div class="box"><h3>Tarjeta de fidelidad</h3><ol><li>En <b>Tarjetas › + Nueva tarjeta</b> pon el nombre y el celular del cliente.</li><li>Toca <b>Enviar tarjeta</b>: le llega por WhatsApp el link de su tarjeta virtual. No necesita descargar nada.</li><li>Cada vez que registres una venta con ese celular, se suma <b>1 sello por perfume o set</b> (los body spray y decants no suman).</li><li>Cuando llegue a un premio, aparece <b>Premio listo</b>: avísale por WhatsApp y, al dárselo, toca <b>Entregar</b>.</li></ol><p class="small muted">Los premios se cambian en <b>Reglas</b>. Con <b>Sellos ±</b> corriges a mano.</p></div>
    <div class="box"><h3>Packs de regalo</h3><p>Un pack junta varios productos con un precio especial (ej. perfume + body spray). No tiene stock propio: la app calcula cuántos puedes armar con lo que hay. Al venderlo, se descuenta cada producto y el cobro se reparte entre ellos. Se crean en <b>Inventario › + Nuevo pack</b>.</p></div>
    <div class="box"><h3>Gastos</h3><p>Registra todo lo que sale para el negocio y no es mercadería: publicidad, delivery, bolsas, frascos para decants, pasajes. Se restan de la ganancia, así ves la <b>ganancia neta</b> real. Normalmente se pagan con la Cuenta del negocio.</p></div>
@@ -375,6 +376,52 @@ function formReglas(){
       if(!premios.some(p=>p.en===meta))return $('r-e').textContent=`El último premio debe estar en el sello ${meta} (al completar la tarjeta).`;
       if(new Set(premios.map(p=>p.en)).size<premios.length)return $('r-e').textContent='Dos premios no pueden estar en el mismo sello.';
       save(async()=>{await api.set('ajustes','fidelidad',{meta,premios:premios.sort((a,b)=>a.en-b.en)});S.tarj.forEach(t=>syncWallet(t.id))},'Reglas guardadas',$('r-e'))};
+  });
+}
+
+/* ---------- reseñas de clientes verificados ---------- */
+const resDe=movId=>S.res.find(r=>r.movId===movId);
+const linkResena=id=>new URL('resena.html?t='+encodeURIComponent(id),location.href.split('#')[0]).href;
+const estrellas=n=>'★★★★★'.slice(0,n)+'☆☆☆☆☆'.slice(0,5-n);
+function resenaBtn(m){if(S.missing&&S.missing.has('resenas'))return'';const r=resDe(m.id);
+  if(r&&r.estado!=='pendiente')return `<span class="stars" title="${esc(r.comentario||'')}">${estrellas(+r.estrellas||0)}</span> `;
+  return `<button class="btn sm" data-a="pedirres" data-id="${esc(m.id)}" title="Pedir reseña por WhatsApp">${r?'Reenviar reseña':'Pedir reseña'}</button> `}
+function msgResena(r){const n=(r.cliente||'').split(' ')[0];
+  return `Hola ${n} 👋, te saluda *Noor Parfum* ✨\n\n¡Gracias por tu compra de *${r.producto}*! 🙏\n¿Nos ayudas con tu opinión? Son 20 segundos: eliges las estrellas y, si quieres, dejas un comentario.\n\n👉 ${linkResena(r.id)}\n\nTu reseña ayuda a otras personas a elegir su perfume 🌙`}
+function abrirWA(u){const a=document.createElement('a');a.href=u;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();a.remove()}
+async function pedirResena(movId){
+  const m=S.mov.find(x=>x.id===movId);const P=calc();const p=P[m.codigo];
+  if(!m.telefono||telKey(m.telefono).length<9)return toast('Esta venta no tiene celular. Edítala y agrégalo para pedir la reseña.');
+  let r=resDe(movId),nuevo=false;
+  if(!r){r={id:nuevoCodigo()+nuevoCodigo().slice(0,2),estado:'pendiente',movId,codigo:m.codigo,producto:p?.nombre||m.codigo,cliente:m.cliente||'',telefono:m.telefono,enviada:today(),por:S.email};nuevo=true}
+  abrirWA(waLink(m.telefono,msgResena(r))); // se abre al instante para que el celular no lo bloquee
+  if(!nuevo)return;
+  const {id,...doc}=r;S.res.push(r);render();
+  try{await api.set('resenas',id,doc);loadAll()}catch(e){S.res=S.res.filter(x=>x!==r);render();toast('No se guardó el link de la reseña. Revisa tu conexión y vuelve a tocar "Pedir reseña".')}
+}
+function vResenas(P){
+  if(S.missing&&S.missing.has('resenas'))return head('Reseñas','Opiniones de clientes verificados')+`<div class="box empty">Falta activar las reseñas en la base de datos.<br>Ejecuta el archivo <b>supabase/005_resenas.sql</b> en Supabase › SQL Editor y recarga la app.</div>`;
+  const pub=S.res.filter(r=>r.estado==='publicada'||r.estado==='oculta').sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+  const vis=pub.filter(r=>r.estado==='publicada');const pend=S.res.filter(r=>r.estado==='pendiente').sort((a,b)=>(b.enviada||'').localeCompare(a.enviada||''));
+  const prom=vis.length?vis.reduce((a,r)=>a+(+r.estrellas||0),0)/vis.length:0;
+  const dist=[5,4,3,2,1].map(n=>({n,c:vis.filter(r=>+r.estrellas===n).length}));
+  const card=r=>`<div class="box rcard${r.estado==='oculta'?' off':''}"><div class="item" style="padding-top:0"><div><span class="stars">${estrellas(+r.estrellas||0)}</span><div><b>${esc(r.producto||'')}</b></div><div class="small muted">${esc(r.nombrePublico||'')} (${esc(r.cliente||'')}) · ${fdate(r.fecha)}${r.estado==='oculta'?' · <b>Oculta</b>':''}</div></div></div>
+    ${r.comentario?`<p style="margin:8px 0 0">“${esc(r.comentario)}”</p>`:'<p class="small muted" style="margin:8px 0 0">Sin comentario, solo estrellas.</p>'}
+    ${r.respuesta?`<div class="resp"><b>Respuesta de Noor Parfum:</b> ${esc(r.respuesta)}</div>`:''}
+    <div class="acts" style="margin-top:8px"><button class="btn sm" data-a="resresp" data-id="${esc(r.id)}">${r.respuesta?'Editar respuesta':'Responder'}</button><button class="btn sm" data-a="resocultar" data-id="${esc(r.id)}">${r.estado==='oculta'?'Volver a mostrar':'Ocultar'}</button></div></div>`;
+  return head('Reseñas','Solo opinan clientes que compraron: el link se pide desde Ventas › Pedir reseña')+
+  `<div class="kpis"><div class="kpi"><div class="l">Calificación</div><div class="v">${vis.length?prom.toFixed(1).replace('.',',')+' ★':'—'}</div><div class="d">${vis.length} ${vis.length===1?'reseña publicada':'reseñas publicadas'}</div></div><div class="kpi"><div class="l">Links sin responder</div><div class="v">${pend.length}</div><div class="d">clientes que aún no opinan</div></div><div class="kpi"><div class="l">Sin respuesta tuya</div><div class="v">${vis.filter(r=>!r.respuesta).length}</div><div class="d">responder genera confianza</div></div></div>`+
+  (vis.length?`<div class="box" style="margin-bottom:14px">${dist.map(d=>`<div class="barrow"><span>${d.n} ★</span><div class="track"><i style="width:${vis.length?d.c/vis.length*100:0}%"></i></div><b>${d.c}</b></div>`).join('')}</div>`:'')+
+  (pub.length?`<div class="grid2">${pub.map(card).join('')}</div>`:`<div class="box empty">Aún no hay reseñas. En <b>Ventas</b>, toca <b>Pedir reseña</b> en una venta: le llega al cliente un link por WhatsApp para calificar con estrellas. Lo mejor es pedirla 2 o 3 días después de la entrega, cuando ya probó el perfume.</div>`)+
+  (pend.length?`<div class="box" style="margin-top:14px"><h3>Links enviados sin responder</h3>${pend.map(r=>`<div class="item"><div>${esc(r.cliente||'Sin nombre')}<div class="small muted">${esc(r.producto)} · enviado ${fdate(r.enviada)}</div></div><a class="btn sm wa" href="${esc(waLink(r.telefono,msgResena(r)))}" target="_blank" rel="noopener">Recordar</a></div>`).join('')}</div>`:'')+
+  `<p class="small muted" style="margin-top:14px">Oculta una reseña solo si es ofensiva o spam. Las críticas reales se responden con amabilidad: ocultarlas quita credibilidad.</p>`;
+}
+function formRespuesta(id){
+  const r=S.res.find(x=>x.id===id);
+  open(`<h3>Responder a ${esc(r.nombrePublico||'cliente')}</h3><p class="small muted">Tu respuesta se ve en el catálogo debajo de su reseña.</p><p>“${esc(r.comentario||estrellas(+r.estrellas||0))}”</p>
+   <form class="f" onsubmit="return false"><label class="full">Respuesta<textarea id="rr-t" rows="3" maxlength="400" placeholder="¡Gracias, ${esc((r.cliente||'').split(' ')[0])}! Nos alegra que…">${esc(r.respuesta||'')}</textarea></label></form><div class="err" id="rr-e"></div>
+   <div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pri" id="rr-s">Guardar</button></div>`,ov=>{
+    const $=$in(ov);$('rr-s').onclick=()=>save(()=>api.update('resenas',id,{respuesta:$('rr-t').value.trim()}),'Respuesta guardada',$('rr-e'));
   });
 }
 
@@ -678,6 +725,8 @@ function bind(){
     const F={treglas:formReglas,venta:formVenta,salida:formSalida,newp:()=>formProd(),compra:formCompra,sepnew:formSeparado,gasto:formGasto,traspaso:formTraspaso,pct:formPct,yape:formYape,newpack:()=>formPack()};
     if(F[a])return F[a]();
     if(a==='tnew')return formTarjeta(null,{nom:b.dataset.nom,tel:b.dataset.tel});if(a==='tedit')return formTarjeta(id);if(a==='tsello')return formSellos(id);if(a==='tcanje')return formCanje(id,b.dataset.en);
+    if(a==='pedirres')return pedirResena(id);if(a==='resresp')return formRespuesta(id);
+    if(a==='resocultar'){const r=S.res.find(x=>x.id===id);const ocultar=r.estado!=='oculta';if(ocultar&&!confirm('¿Ocultar esta reseña del catálogo? Hazlo solo si es ofensiva o spam.'))return;return api.update('resenas',id,{estado:ocultar?'oculta':'publicada'}).then(()=>{toast(ocultar?'Reseña oculta':'Reseña visible');loadAll()},e=>toast('Error: '+(e.message||e)))}
     if(a==='promo'){const p=calc()[id];const t=promoTxt(p);return navigator.clipboard.writeText(t).then(()=>toast('Texto copiado: pégalo en tu estado'),()=>prompt('Copia el texto:',t))}
     if(a==='tcopy'){const u=linkTarjeta(id);return navigator.clipboard.writeText(u).then(()=>toast('Link copiado'),()=>prompt('Copia el link de la tarjeta:',u))}
     if(a==='abono')formCobro('movimientos',id);else if(a==='sepabono')formCobro('separados',id);else if(a==='sepentrega')formEntrega(id);else if(a==='sepcancel')formCancelSep(id);
@@ -698,19 +747,19 @@ window.addEventListener('hashchange',route);
 const api={
   async add(t,data){const {error}=await S.sb.from(t).insert({data});if(error)throw error},
   async set(t,id,data){const {error}=await S.sb.from(t).upsert({id,data});if(error)throw error},
-  async update(t,id,patch){const src={productos:null,movimientos:S.mov,compras:S.comp,gastos:S.gastos,separados:S.sep,socios_mov:S.smov,tarjetas:S.tarj}[t];
+  async update(t,id,patch){const src={productos:null,movimientos:S.mov,compras:S.comp,gastos:S.gastos,separados:S.sep,socios_mov:S.smov,tarjetas:S.tarj,resenas:S.res}[t];
     const cur=(t==='productos'?S.prod[id]:src.find(x=>x.id===id))||{};const {id:_,...rest}=cur;
     const {error}=await S.sb.from(t).update({data:{...rest,...patch},actualizado_en:new Date().toISOString()}).eq('id',id);if(error)throw error},
   async del(t,id){const {error}=await S.sb.from(t).delete().eq('id',id);if(error)throw error}
 };
-const OPTIONAL=['gastos','separados','socios_mov','ajustes','tarjetas'];
+const OPTIONAL=['gastos','separados','socios_mov','ajustes','tarjetas','resenas'];
 async function loadTable(t){
   const {data,error}=await S.sb.from(t).select('id,data').limit(5000);
   if(error){if(OPTIONAL.includes(t)){console.warn('Tabla '+t+' no disponible',error.message);S.ready[t]=1;S.missing=(S.missing||new Set()).add(t);return}throw error}
   const rows=data.map(r=>({...r.data,id:r.id}));
   if(t==='productos'){S.prod={};data.forEach(r=>S.prod[r.id]=r.data)}
   else if(t==='movimientos')S.mov=rows;else if(t==='compras')S.comp=rows;else if(t==='gastos')S.gastos=rows;
-  else if(t==='separados')S.sep=rows;else if(t==='socios_mov')S.smov=rows;else if(t==='tarjetas')S.tarj=rows;else if(t==='ajustes'){S.ajustes={};data.forEach(r=>S.ajustes[r.id]=r.data)}
+  else if(t==='separados')S.sep=rows;else if(t==='socios_mov')S.smov=rows;else if(t==='tarjetas')S.tarj=rows;else if(t==='resenas')S.res=rows;else if(t==='ajustes'){S.ajustes={};data.forEach(r=>S.ajustes[r.id]=r.data)}
   S.ready[t]=1;
 }
 async function loadAll(){try{await Promise.all(TABLES.map(loadTable));render()}catch(e){console.error(e);toast('No se pudieron cargar los datos.')}}

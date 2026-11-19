@@ -130,6 +130,34 @@ nav button small{opacity:.55;font-weight:600;margin-left:3px}
 .grid{display:none;max-width:1100px;margin:18px auto 0;padding:0 16px;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
 body.gv .grid{display:grid}
 body.gv .stage,body.gv .info,body.gv .sub{display:none}
+/* ---------- Reseñas ---------- */
+.rate{display:none;margin:10px auto 0;border:0;background:none;font:600 12px Montserrat;color:#5a4b33;cursor:pointer;align-items:center;gap:7px;padding:6px 10px;border-radius:999px}
+.rate.on{display:flex}
+.rate:hover{background:#ebe3d6}
+.st{color:#b7965d;letter-spacing:1px;font-size:13px;white-space:nowrap}
+.st i{font-style:normal;color:#d9d1c3}
+.prate{display:flex;align-items:center;gap:8px;margin:8px 0 2px;font-size:12px;color:#5a4b33;background:none;border:0;padding:0;font-family:Montserrat;cursor:pointer;text-decoration:underline;text-decoration-color:#d9d1c3;text-underline-offset:3px}
+.info .prate{margin:8px auto 2px}
+.revs{text-align:left;margin-top:16px;border-top:1px solid #ebe3d6;padding-top:12px}
+.revs h4{font-size:10px;letter-spacing:.2em;color:#8b7a5f;margin:0 0 8px}
+.rv{padding:10px 0;border-bottom:1px solid #f0eadf}
+.rv:last-child{border-bottom:0}
+.rv .hd{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:#5a4b33}
+.rv .hd b{font-weight:600}
+.rv .ver{font-size:10px;color:#4f7a4a;font-weight:600;letter-spacing:.04em}
+.rv p{margin:6px 0 0;font-size:13px;line-height:1.5;color:#2e281f}
+.rv .rp{margin-top:6px;padding:7px 10px;border-left:2px solid #b7965d;background:#f6f0e4;font-size:12px;color:#4a4033;border-radius:0 8px 8px 0}
+.rv .pn{font-size:10px;letter-spacing:.14em;color:#8b7a5f;font-weight:600;text-transform:uppercase;margin-top:4px}
+.card .st{font-size:11px;margin-top:4px}
+.card .st small{font-size:10px;letter-spacing:0;color:#8b7a5f;text-transform:none;margin:0}
+.rmod{position:fixed;inset:0;z-index:980;display:none;align-items:flex-end;justify-content:center;background:#0b0b0d8c}
+.rmod.on{display:flex}
+.rmod .in{background:#f8f6f1;width:min(560px,100%);max-height:86vh;overflow:auto;border-radius:22px 22px 0 0;padding:22px 20px 30px}
+@media (min-width:700px){.rmod{align-items:center}.rmod .in{border-radius:22px}}
+.rmod h3{font-family:Cinzel;margin:0;font-size:20px}
+.rmod .sum{display:flex;align-items:center;gap:14px;margin:12px 0 6px}
+.rmod .sum b{font-family:Cinzel;font-size:38px}
+.rmod .x{float:right;border:0;background:none;font-size:28px;color:#8b7a5f;cursor:pointer;line-height:1}
 /* ---------- Tienda 3D ---------- */
 .t3host{display:none;position:relative;max-width:1180px;margin:16px auto 0;height:min(74vh,720px);border-radius:24px;overflow:hidden;background:#0b0b0d;box-shadow:0 30px 70px -30px #000a}
 body.tv .t3host{display:block}
@@ -215,6 +243,7 @@ body.tv .stage,body.tv .info,body.tv .sub,body.tv .grid{display:none}
  <div class="hr"><a class="cta" id="cta" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21c5.46 0 9.91-4.45 9.91-9.91C21.95 6.45 17.5 2 12.04 2zm5.8 14.1c-.24.68-1.42 1.31-1.96 1.36-.5.05-1.13.07-1.82-.11-.42-.13-.96-.31-1.65-.61-2.9-1.25-4.8-4.17-4.94-4.36-.14-.19-1.18-1.57-1.18-3s.75-2.13 1.02-2.42c.27-.29.58-.36.78-.36h.56c.18 0 .42-.07.66.5.24.58.82 2.01.89 2.16.07.14.12.31.02.5-.1.19-.14.31-.29.48l-.43.5c-.14.14-.29.3-.12.59.17.29.74 1.22 1.59 1.98 1.09.97 2.01 1.27 2.3 1.42.29.14.46.12.63-.07.17-.19.72-.84.92-1.13.19-.29.38-.24.65-.14.27.1 1.68.79 1.97.94.29.14.48.21.55.33.07.12.07.7-.17 1.38z"/></svg><span>PIDE POR WHATSAPP</span></a><button class="bag" id="bag" aria-label="Mi pedido"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><i id="bagn">0</i></button></div>
 </header>
 <div class="slogan">Deja que tu esencia hable</div>
+<button class="rate" id="rate" type="button"></button>
 <nav id="nav">
  <button data-c="all" class="on">Todos</button><button data-c="navidad">🎄 Navidad</button><button data-c="el">Para él</button><button data-c="ella">Para ella</button><button data-c="unisex">Unisex</button><button data-c="sets">Sets y más</button>
 </nav>
@@ -238,6 +267,7 @@ body.tv .stage,body.tv .info,body.tv .sub,body.tv .grid{display:none}
 <footer>Noor Parfum · Guadalupe, Pacasmayo · WhatsApp 926 252 995 · Instagram @noorparfum_guadalupe<br>Precios en soles, sujetos a stock.</footer>
 <div class="bar" id="bar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg> Ver mi pedido <span id="barTxt"></span> →</div>
 <div class="veil" id="veil"></div>
+<div class="rmod" id="rmod" role="dialog" aria-modal="true" aria-label="Reseñas de clientes"><div class="in" id="rmodin"></div></div>
 <aside class="drawer" id="drawer" aria-label="Mi pedido">
  <div class="dh"><h3>Mi pedido</h3><button class="x" id="close" aria-label="Cerrar">×</button></div>
  <div class="db" id="db"></div>
@@ -259,6 +289,27 @@ $("cta").href=wa("Hola Noor Parfum 👋 Quiero ver el catálogo.");
 /* Stock real: enlace entre cada perfume del catálogo y su código en la app de control */
 const COD={sugar_rush_sprinkle_joy:"P01",sugar_rush_sweetness:"P02",qamarain_for_her:"P03",qamarain_for_him:"P04",hawas_ice:"P05",hawas_for_him:"P06",profumo_intensity:"P07",royale_rubinia:"P08",umm_al_quwain:"P09",vani_landia:"P10",gummy_landia:"P11",crystal_garnate:"P12",crystal_aurum:"P13",al_awwal_nisae:"P14",al_awwal_malaki:"P15",pure_gold:"P16",le_gemme_rosy:"P17",avant:"P18",ghazal_edge:"P19",z7:"P20",z25:"P23",esraa:"P25",tubbees_mango:"P26",kingdom:"P27",asad:"P28","9am":"P29"};
 const COMP={pk01:["P05","P20"],pk02:["P06","P23"],pk03:["P18","P23"],pk04:["P01","P24"],pk05:["P08","P21"],pk06:["P16","P22"],pk07:["P04","P03","P22"],pk08:["P26","P22"],pk09:["P25","P24"]};
+/* Reseñas de clientes verificados (vienen de la app de control) */
+const KEYOF=Object.fromEntries(Object.entries(COD).map(([k,v])=>[v,k]));
+let REV={},REVALL=[];
+const keyDe=c=>KEYOF[c]||(/^PK\d+$/i.test(c||"")?c.toLowerCase():null);
+const starsTxt=x=>{const r=Math.round(x);return "★".repeat(r)+`<i>${"★".repeat(5-r)}</i>`};
+const nfmt=x=>x.toFixed(1).replace(".",",");
+const fechaTxt=f=>{if(!f)return"";const [y,m,d]=f.split("-");return `${+d} ${["ene","feb","mar","abr","may","jun","jul","ago","set","oct","nov","dic"][+m-1]} ${y}`};
+const rvHTML=(r,conProd)=>`<div class="rv"><div class="hd"><span><span class="st">${starsTxt(r.estrellas)}</span> <b>${esc(r.nombre||"Cliente")}</b></span><span>${fechaTxt(r.fecha)}</span></div>${conProd&&r.prod?`<div class="pn">${esc(r.prod)}</div>`:""}<div class="ver">✓ Compra verificada</div>${r.comentario?`<p>${esc(r.comentario)}</p>`:""}${r.respuesta?`<div class="rp"><b>Noor Parfum:</b> ${esc(r.respuesta)}</div>`:""}</div>`;
+const rateLine=k=>{const R=REV[k];return R?`<button class="prate" data-rk="${k}"><span class="st">${starsTxt(R.avg)}</span>${nfmt(R.avg)} · ${R.n} ${R.n===1?"reseña":"reseñas"}</button>`:""};
+function verResenas(k){
+  const L=k?REV[k]?.list||[]:REVALL;if(!L.length)return;
+  const avg=L.reduce((a,r)=>a+r.estrellas,0)/L.length,p=k&&P.find(x=>x.k===k);
+  $("rmodin").innerHTML=`<button class="x" aria-label="Cerrar">×</button><h3>${p?esc(p.n):"Lo que dicen nuestros clientes"}</h3>
+   <div class="sum"><b>${nfmt(avg)}</b><div><span class="st" style="font-size:18px">${starsTxt(avg)}</span><div class="small" style="font-size:12px;color:#8b7a5f">${L.length} ${L.length===1?"reseña":"reseñas"} de compras verificadas</div></div></div>
+   ${L.map(r=>rvHTML(r,!k)).join("")}`;
+  $("rmod").classList.add("on");$("rmodin").querySelector(".x").onclick=()=>$("rmod").classList.remove("on");
+}
+$("rmod").onclick=e=>{if(e.target.id==="rmod")$("rmod").classList.remove("on")};
+document.addEventListener("click",e=>{const b=e.target.closest("[data-rk]");if(b){e.stopPropagation();verResenas(b.dataset.rk)}},true);
+$("rate").onclick=()=>verResenas(null);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const tagOf=p=>p.disp===0?"A PEDIDO":p.disp===1?"¡ÚLTIMA UNIDAD!":p.tag;
 const BY={};P.forEach(p=>BY[p.k]=p);
 let list=[],act=0,els=[],sel={};
@@ -286,7 +337,7 @@ function build(c,keep){
 }
 function grid(){
   const g=$("grid");
-  g.innerHTML=list.length?list.map((p,i)=>`<div class="card" data-i="${i}" style="--t:${p.t}">${tagOf(p)?`<span class="tg${p.disp===0?" ped":""}">${tagOf(p)}</span>`:""}<div class="im"><img src="catalogo/img/${p.k}.webp" alt="${p.n}" loading="lazy"></div><b>${p.n}</b><small>${p.b} · ${p.ml}</small><div class="pr"><span>S/ ${p.p}${p.o.length>1?`<i class="dc">Decant desde S/ ${Math.min(...p.o.map(o=>o.p))}</i>`:""}</span><button data-add="${p.k}" aria-label="Agregar ${p.n}">+</button></div></div>`).join(""):`<div class="gempty">No encontramos ese perfume. Prueba con otro nombre.</div>`;
+  g.innerHTML=list.length?list.map((p,i)=>`<div class="card" data-i="${i}" style="--t:${p.t}">${tagOf(p)?`<span class="tg${p.disp===0?" ped":""}">${tagOf(p)}</span>`:""}<div class="im"><img src="catalogo/img/${p.k}.webp" alt="${p.n}" loading="lazy"></div><b>${p.n}</b><small>${p.b} · ${p.ml}</small>${REV[p.k]?`<span class="st">${starsTxt(REV[p.k].avg)} <small>(${REV[p.k].n})</small></span>`:""}<div class="pr"><span>S/ ${p.p}${p.o.length>1?`<i class="dc">Decant desde S/ ${Math.min(...p.o.map(o=>o.p))}</i>`:""}</span><button data-add="${p.k}" aria-label="Agregar ${p.n}">+</button></div></div>`).join(""):`<div class="gempty">No encontramos ese perfume. Prueba con otro nombre.</div>`;
 }
 $("grid").onclick=e=>{const a=e.target.closest("[data-add]");if(a){add(a.dataset.add,"f");return}const c=e.target.closest(".card");if(!c)return;setView("s");go(+c.dataset.i);window.scrollTo({top:stage.offsetTop-90,behavior:"smooth"})};
 let T3=null,T3p=null;
@@ -294,7 +345,7 @@ function setView(v){document.body.classList.toggle("gv",v==="g");document.body.c
   if(v==="t")abrirTienda();else if(T3)T3.pause()}
 /* Tienda 3D: se descarga solo cuando el cliente la abre */
 function abrirTienda(k){
-  T3p=T3p||import("./catalogo/tienda3d.js?v=20261119b").then(m=>m.start($("t3host"),{P,add,tagOf,
+  T3p=T3p||import("./catalogo/tienda3d.js?v=20261119c").then(m=>m.start($("t3host"),{P,add,tagOf,rating:k=>rateLine(k),
     verDetalle:kk=>{setNav("all");cat="all";if(qs){$("q").value="";qs="";$("srch").classList.remove("has");T3&&T3.filter(()=>true)}setView("s");build("all");const i=list.findIndex(p=>p.k===kk);if(i>=0)go(i);window.scrollTo({top:stage.offsetTop-90,behavior:"smooth"})},
     sinWebGL:()=>{$("vt").remove();setView("s");toast("Tu celular no puede abrir la tienda 3D")}}));
   T3p.then(t=>{if(!t)return;T3=t;T3.resume();if(qs.trim()){const w=norm(qs.trim()).split(/\s+/);T3.filter(p=>w.every(x=>hay(p).includes(x)))}if(k)T3.goProduct(k)}).catch(e=>{console.error(e);T3p=null;setView("s");toast("No se pudo abrir la tienda 3D")});
@@ -326,9 +377,9 @@ function render(){
   try{history.replaceState(null,"","#"+p.k)}catch(e){}
   const msg=`Hola Noor Parfum 👋 Quiero ${o.id==="f"?"el "+p.n+" ("+p.b+" · "+p.ml+")":o.l.toLowerCase()+" de "+p.n} de S/ ${o.p}. ¿Está disponible?`;
   info.innerHTML=`<div class="count">${String(act+1).padStart(2,"0")} / ${String(list.length).padStart(2,"0")}</div>
-  <h1>${p.n}</h1><div class="brand">${p.b} · ${p.ml}</div>
+  <h1>${p.n}</h1><div class="brand">${p.b} · ${p.ml}</div>${rateLine(p.k)}
   ${opts||`<div class="price">S/ ${p.p}</div>`}${notes}<div class="use">${p.use}</div>${dec}
-  <div class="btns"><button class="add" id="add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>AGREGAR AL PEDIDO</button><a class="solo" href="${wa(msg)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21c5.46 0 9.91-4.45 9.91-9.91C21.95 6.45 17.5 2 12.04 2zm5.8 14.1c-.24.68-1.42 1.31-1.96 1.36-.5.05-1.13.07-1.82-.11-.42-.13-.96-.31-1.65-.61-2.9-1.25-4.8-4.17-4.94-4.36-.14-.19-1.18-1.57-1.18-3s.75-2.13 1.02-2.42c.27-.29.58-.36.78-.36h.56c.18 0 .42-.07.66.5.24.58.82 2.01.89 2.16.07.14.12.31.02.5-.1.19-.14.31-.29.48l-.43.5c-.14.14-.29.3-.12.59.17.29.74 1.22 1.59 1.98 1.09.97 2.01 1.27 2.3 1.42.29.14.46.12.63-.07.17-.19.72-.84.92-1.13.19-.29.38-.24.65-.14.27.1 1.68.79 1.97.94.29.14.48.21.55.33.07.12.07.7-.17 1.38z"/></svg>PEDIR SOLO ESTE</a><button class="share" id="shr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/></svg>COMPARTIR</button></div>`;
+  <div class="btns"><button class="add" id="add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>AGREGAR AL PEDIDO</button><a class="solo" href="${wa(msg)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21c5.46 0 9.91-4.45 9.91-9.91C21.95 6.45 17.5 2 12.04 2zm5.8 14.1c-.24.68-1.42 1.31-1.96 1.36-.5.05-1.13.07-1.82-.11-.42-.13-.96-.31-1.65-.61-2.9-1.25-4.8-4.17-4.94-4.36-.14-.19-1.18-1.57-1.18-3s.75-2.13 1.02-2.42c.27-.29.58-.36.78-.36h.56c.18 0 .42-.07.66.5.24.58.82 2.01.89 2.16.07.14.12.31.02.5-.1.19-.14.31-.29.48l-.43.5c-.14.14-.29.3-.12.59.17.29.74 1.22 1.59 1.98 1.09.97 2.01 1.27 2.3 1.42.29.14.46.12.63-.07.17-.19.72-.84.92-1.13.19-.29.38-.24.65-.14.27.1 1.68.79 1.97.94.29.14.48.21.55.33.07.12.07.7-.17 1.38z"/></svg>PEDIR SOLO ESTE</a><button class="share" id="shr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/></svg>COMPARTIR</button></div>${REV[p.k]?`<div class="revs"><h4>LO QUE DICEN</h4>${REV[p.k].list.slice(0,2).map(r=>rvHTML(r)).join("")}${REV[p.k].n>2?`<button class="prate" data-rk="${p.k}">Ver las ${REV[p.k].n} reseñas</button>`:""}</div>`:""}`;
   info.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{sel[p.k]=b.dataset.o;render()});
   $("add").onclick=()=>add(p.k,o.id);
   $("shr").onclick=async()=>{const u=location.href.split("#")[0]+"#"+p.k,t=`${p.n} · S/ ${o.p} en Noor Parfum`;
@@ -410,6 +461,17 @@ paint();
   P.forEach(p=>{const c=COD[p.k];if(c&&c in D)p.disp=D[c];const cs=COMP[p.k];if(cs&&cs.every(x=>x in D))p.disp=Math.min(...cs.map(x=>D[x]))});
   build(null,true);
 }catch(e){console.warn("Stock no disponible",e)}})();
+(async()=>{try{
+  if(!window.supabase||!window.NOOR_CONFIG)return;
+  const sb=supabase.createClient(NOOR_CONFIG.supabaseUrl,NOOR_CONFIG.supabaseAnonKey,{auth:{persistSession:false}});
+  const {data,error}=await sb.rpc("resenas_publicas");if(error)throw error;
+  REV={};REVALL=[];
+  for(const r of [...(data||[])].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''))){const k=keyDe(r.codigo);const p=k&&P.find(x=>x.k===k);const x={...r,estrellas:+r.estrellas||0,prod:p?p.n:""};REVALL.push(x);if(!p)continue;(REV[k]=REV[k]||{n:0,s:0,list:[]}).list.push(x)}
+  for(const k in REV){const R=REV[k];R.n=R.list.length;R.avg=R.list.reduce((a,r)=>a+r.estrellas,0)/R.n}
+  if(REVALL.length){const avg=REVALL.reduce((a,r)=>a+r.estrellas,0)/REVALL.length;
+    $("rate").innerHTML=`<span class="st">${starsTxt(avg)}</span>${nfmt(avg)} · ${REVALL.length} ${REVALL.length===1?"reseña":"reseñas"} de clientes verificados`;$("rate").classList.add("on")}
+  build(null,true);
+}catch(e){console.warn("Reseñas no disponibles",e)}})();
 </script>
 </body>
 </html>

@@ -248,7 +248,7 @@ function build(host, api) {
     const paint = () => {
       sheet.innerHTML = `<button class="t3-x" aria-label="Cerrar">×</button>
         <img src="catalogo/img/${p.k}.webp" alt="">
-        <div class="t3-tx"><small>${p.b} · ${p.ml}</small><h3>${p.n}</h3>
+        <div class="t3-tx"><small>${p.b} · ${p.ml}</small><h3>${p.n}</h3>${api.rating ? api.rating(p.k) : ""}
         ${p.o.length > 1 ? `<div class="t3-opts">${p.o.map((x) => `<button data-o="${x.id}" class="${x.id === o.id ? "on" : ""}">${x.l}<b>S/ ${x.p}</b></button>`).join("")}</div>` : `<div class="t3-pr">S/ ${p.p}</div>`}
         <p>${p.notes ? `<b>Notas:</b> ${p.notes.join(" · ")}` : p.desc || ""}</p>
         <div class="t3-btns"><button class="t3-add">Agregar al pedido</button><button class="t3-more">Ver detalles</button></div></div>`;

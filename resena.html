@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0B0B0D">
+<meta name="robots" content="noindex">
+<link rel="icon" href="icons/icon-192.png">
+<title>Tu opinión · Noor Parfum</title>
+<meta property="og:title" content="¿Qué te pareció tu perfume?">
+<meta property="og:description" content="Califica tu compra en Noor Parfum. Son 20 segundos.">
+<meta property="og:image" content="icons/icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@500;600;700&family=Montserrat:wght@400;500;600;700&display=swap">
+<style>
+/* Una tarea: calificar. Estrellas grandes primero; el comentario es opcional y el envío es un solo botón. */
+:root{--ink:#0B0B0D;--ivory:#F7F1E6;--gold:#D4AF7C;--gold2:#ECD5A8;--gold3:#A8824C;--muted:#B5AA97;--line:#2C261D;
+  --display:"Playfair Display",Georgia,serif;--body:"Montserrat",system-ui,sans-serif;--script:"Great Vibes",cursive}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{background:var(--ink);color-scheme:dark}
+body{margin:0;min-height:100dvh;font-family:var(--body);color:var(--ivory);-webkit-font-smoothing:antialiased;
+  background:radial-gradient(120% 70% at 50% -10%,#2a2116 0%,transparent 60%),var(--ink);
+  padding:max(18px,env(safe-area-inset-top)) 18px max(28px,env(safe-area-inset-bottom))}
+.wrap{max-width:440px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:center;gap:10px;margin:4px 0 20px}
+header img{width:30px}
+header span{font-family:var(--display);letter-spacing:.32em;font-size:13px;font-weight:600;color:var(--gold2)}
+.prod{display:flex;flex-direction:column;align-items:center;text-align:center}
+.prod img{height:150px;max-width:80%;object-fit:contain;filter:drop-shadow(0 18px 24px #000c)}
+.prod small{margin-top:16px;font-size:11px;letter-spacing:.22em;color:var(--gold);font-weight:600}
+h1{font-family:var(--display);font-weight:600;font-size:26px;line-height:1.2;margin:8px 0 0;text-wrap:balance}
+.q{margin:26px 0 12px;text-align:center;font-size:15px;color:#e2d8c6}
+.stars{display:flex;justify-content:center;gap:6px}
+.stars button{background:none;border:0;padding:4px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.stars svg{width:46px;height:46px;fill:#2a241a;stroke:#5b4c33;stroke-width:1;transition:fill .15s,stroke .15s,transform .25s cubic-bezier(.16,1,.3,1)}
+.stars button.on svg{fill:var(--gold);stroke:var(--gold3)}
+.stars button.pop svg{transform:scale(1.18)}
+.stars button:focus-visible{outline:2px solid var(--gold2);outline-offset:2px;border-radius:8px}
+.lbl{text-align:center;min-height:22px;margin-top:8px;font-family:var(--display);font-size:17px;color:var(--gold2)}
+.more{margin-top:18px;display:grid;gap:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.chips button{border:1px solid #4a3e2b;background:#15120e;color:#e2d8c6;border-radius:999px;padding:9px 13px;font:500 12.5px var(--body);cursor:pointer}
+.chips button.on{border-color:var(--gold);background:#d4af7c22;color:var(--gold2)}
+label{display:grid;gap:6px;font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.04em}
+textarea,input{width:100%;border:1px solid #3a3020;background:#15120e;color:var(--ivory);border-radius:14px;padding:13px 14px;font:400 15px var(--body);outline:none;resize:vertical}
+textarea:focus,input:focus{border-color:var(--gold3)}
+.cnt{font-size:11px;color:#7f7058;text-align:right;margin-top:-6px}
+.send{margin-top:6px;border:0;border-radius:999px;padding:16px;font:700 12px var(--body);letter-spacing:.16em;text-transform:uppercase;cursor:pointer;
+  background:linear-gradient(135deg,var(--gold2),var(--gold) 55%,var(--gold3));color:var(--ink)}
+.send:disabled{opacity:.4;cursor:default}
+.note{font-size:12px;color:#7f7058;text-align:center;line-height:1.5}
+.err{color:#f0a48c;font-size:13px;text-align:center;min-height:18px}
+.done,.state{text-align:center;padding:30px 6px}
+.done .big{font-family:var(--script);font-size:56px;color:var(--gold2);line-height:1}
+.done h2,.state b{display:block;font-family:var(--display);font-weight:600;font-size:22px;margin:12px 0 8px;color:var(--ivory)}
+.done p,.state p{color:var(--muted);line-height:1.6;font-size:14px;margin:0}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;border-radius:999px;padding:15px 18px;font:700 12px var(--body);letter-spacing:.14em;text-transform:uppercase;border:1px solid #4a3e2b;color:var(--ivory);background:#15120e;margin-top:22px}
+.slogan{text-align:center;font-family:var(--script);font-size:24px;color:var(--gold3);margin-top:30px}
+.skel{height:360px;border-radius:22px;background:linear-gradient(100deg,#15120e 30%,#1f1a13 50%,#15120e 70%);background-size:300% 100%;animation:sk 1.4s linear infinite}
+@keyframes sk{to{background-position:-150% 0}}
+@media (prefers-reduced-motion:reduce){.skel{animation:none}.stars svg{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><img src="icons/logo.png" alt=""><span>NOOR PARFUM</span></header>
+  <main id="app"><div class="skel" aria-label="Cargando"></div></main>
+  <div class="slogan">Deja que tu esencia hable</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script src="config.js?v=20261115a"></script>
+<script>
+const app=document.getElementById("app");
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+/* código del inventario → foto del catálogo (mismo enlace que catalogo.html › COD) */
+const COD={sugar_rush_sprinkle_joy:"P01",sugar_rush_sweetness:"P02",qamarain_for_her:"P03",qamarain_for_him:"P04",hawas_ice:"P05",hawas_for_him:"P06",profumo_intensity:"P07",royale_rubinia:"P08",umm_al_quwain:"P09",vani_landia:"P10",gummy_landia:"P11",crystal_garnate:"P12",crystal_aurum:"P13",al_awwal_nisae:"P14",al_awwal_malaki:"P15",pure_gold:"P16",le_gemme_rosy:"P17",avant:"P18",ghazal_edge:"P19",z7:"P20",z25:"P23",esraa:"P25",tubbees_mango:"P26",kingdom:"P27",asad:"P28","9am":"P29"};
+const KEY=Object.fromEntries(Object.entries(COD).map(([k,v])=>[v,k]));
+const img=c=>KEY[c]?`catalogo/img/${KEY[c]}.webp`:/^PK\d+$/i.test(c||"")?`catalogo/img/${c.toLowerCase()}.webp`:"icons/logo.png";
+const STAR='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 6 6.5.8-4.8 4.5 1.2 6.5L12 17.3l-5.8 3.1 1.2-6.5L2.6 9.4l6.5-.8z"/></svg>';
+const LBL=["","No me gustó","Podría mejorar","Está bien","Me gustó mucho","¡Me encantó!"];
+const CHIPS=["Me encantó el aroma","Dura todo el día","Recibo halagos","Buena atención","Llegó rápido","Buen precio"];
+function state(t,s){app.innerHTML=`<div class="state"><b>${t}</b><p>${s}</p><a class="btn" href="catalogo.html">Ver el catálogo</a></div>`}
+
+function form(R,tok,sb){
+  let n=0;const on=new Set();
+  app.innerHTML=`<div class="prod"><img src="${img(R.codigo)}" alt="" onerror="this.src='icons/logo.png'"><small>TU COMPRA</small><h1>${esc(R.producto)}</h1></div>
+  <p class="q">${R.nombre?esc(R.nombre)+", ¿":"¿"}qué te pareció?</p>
+  <div class="stars" role="radiogroup" aria-label="Calificación">${[1,2,3,4,5].map(i=>`<button type="button" role="radio" aria-checked="false" aria-label="${i} ${i===1?"estrella":"estrellas"}" data-n="${i}">${STAR}</button>`).join("")}</div>
+  <div class="lbl" id="lbl" aria-live="polite"></div>
+  <div class="more" id="more" hidden>
+    <div class="chips">${CHIPS.map(c=>`<button type="button" data-c="${esc(c)}">${esc(c)}</button>`).join("")}</div>
+    <label>Cuéntanos más (opcional)<textarea id="com" rows="3" maxlength="600" placeholder="¿Cómo te queda? ¿Cuánto dura? ¿Te lo recomendaron?"></textarea></label>
+    <div class="cnt" id="cnt">0/600</div>
+    <label>Nombre que se mostrará<input id="nom" maxlength="40" value="${esc(R.sugerido||R.nombre||"")}" autocomplete="given-name"></label>
+    <div class="err" id="err"></div>
+    <button class="send" id="send">Publicar mi reseña</button>
+    <p class="note">Tu reseña aparecerá en el catálogo de Noor Parfum como compra verificada. No mostramos tu número.</p>
+  </div>`;
+  const B=[...app.querySelectorAll(".stars button")];
+  const paint=()=>{B.forEach(b=>{const v=+b.dataset.n;b.classList.toggle("on",v<=n);b.setAttribute("aria-checked",v===n?"true":"false")});document.getElementById("lbl").textContent=LBL[n]};
+  B.forEach(b=>b.onclick=()=>{n=+b.dataset.n;paint();b.classList.add("pop");setTimeout(()=>b.classList.remove("pop"),250);document.getElementById("more").hidden=false});
+  B.forEach(b=>b.onmouseenter=()=>B.forEach(x=>x.classList.toggle("on",+x.dataset.n<=+b.dataset.n)));
+  app.querySelector(".stars").onmouseleave=paint;
+  const com=document.getElementById("com");
+  com.oninput=()=>document.getElementById("cnt").textContent=com.value.length+"/600";
+  app.querySelectorAll(".chips button").forEach(b=>b.onclick=()=>{const c=b.dataset.c;
+    if(on.has(c)){on.delete(c);b.classList.remove("on");com.value=com.value.replace(c+".","").replace(/\s{2,}/g," ").trim()}
+    else{on.add(c);b.classList.add("on");com.value=(com.value.trim()?com.value.trim().replace(/[.!]?$/,". "):"")+c+"."}
+    com.oninput()});
+  document.getElementById("send").onclick=async e=>{
+    const btn=e.currentTarget,err=document.getElementById("err");if(!n)return;
+    btn.disabled=true;btn.textContent="Publicando…";err.textContent="";
+    try{
+      const {data,error}=await sb.rpc("dejar_resena",{p_token:tok,p_estrellas:n,p_comentario:com.value,p_nombre:document.getElementById("nom").value});
+      if(error)throw error;
+      if(!data.ok){if(data.error==="ya_usado")return state("Ya recibimos tu reseña","Cada compra se califica una sola vez. ¡Gracias por tomarte el tiempo!");throw new Error(data.error)}
+      app.innerHTML=`<div class="done"><div class="big">¡Gracias${R.nombre?", "+esc(R.nombre):""}!</div><h2>Tu reseña ya está publicada</h2><p>Ayudas a otras personas a elegir su perfume. Nos alegra que seas parte de Noor Parfum.</p>
+        <a class="btn" href="catalogo.html${KEY[R.codigo]?"#"+KEY[R.codigo]:""}">Ver mi reseña en el catálogo</a></div>`;
+    }catch(x){console.error(x);btn.disabled=false;btn.textContent="Publicar mi reseña";err.textContent="No se pudo publicar. Revisa tu conexión e inténtalo de nuevo."}
+  };
+}
+
+(async()=>{
+  const tok=(new URLSearchParams(location.search).get("t")||"").trim().toUpperCase();
+  if(tok.length<10)return state("Link incompleto","Revisa que hayas abierto el link completo que te enviamos por WhatsApp.");
+  try{
+    const sb=supabase.createClient(NOOR_CONFIG.supabaseUrl,NOOR_CONFIG.supabaseAnonKey,{auth:{persistSession:false}});
+    const {data,error}=await sb.rpc("resena_pendiente",{p_token:tok});if(error)throw error;
+    if(!data)return state("No encontramos este link","Puede que esté incompleto. Escríbenos y te lo enviamos de nuevo.");
+    if(data.estado!=="pendiente")return state("Ya recibimos tu reseña","Cada compra se califica una sola vez. ¡Gracias por tomarte el tiempo!");
+    form(data,tok,sb);
+  }catch(e){console.error(e);state("No pudimos cargar la página","Revisa tu conexión a internet y vuelve a abrir el link.")}
+})();
+</script>
+</body>
+</html>
