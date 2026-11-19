@@ -105,9 +105,43 @@ function render(){
   document.getElementById('main').innerHTML=v(P,T,debts,apart);
   bind();
 }
+/* ---------- alertas: ritmo de venta, agotándose, sin rotación y mes contra mes ---------- */
+const DAY=864e5;
+const dOf=f=>f?new Date(f+'T12:00:00'):null;
+const diasEntre=(a,b)=>Math.round((dOf(b)-dOf(a))/DAY);
+function ritmo(P){
+  const hoy=today(),hace30=new Date(Date.now()-30*DAY).toISOString().slice(0,10);
+  const llegada={};for(const c of S.comp)for(const it of c.items||[])if(c.fecha&&(!llegada[it.codigo]||c.fecha<llegada[it.codigo]))llegada[it.codigo]=c.fecha;
+  const R={};
+  for(const p of Object.values(P)){if(p.esPack||!p.comprado)continue;
+    const ventas=S.mov.filter(m=>m.codigo===p.id&&(m.tipo==='Venta'||m.tipo==='Devolución'));
+    const u30=ventas.filter(m=>(m.fecha||'')>=hace30).reduce((a,m)=>a+(m.tipo==='Venta'?1:-1)*(+m.cant||0),0);
+    const ult=ventas.filter(m=>m.tipo==='Venta').map(m=>m.fecha||'').sort().pop()||'';
+    const desde=llegada[p.id]||hoy;const ventana=Math.max(7,Math.min(30,diasEntre(desde,hoy)||0));
+    const porDia=Math.max(0,u30)/ventana;
+    R[p.id]={p,porDia,dias:porDia>0?Math.floor(p.disp/porDia):null,ult,llegada:desde,sinVenta:diasEntre(ult||desde,hoy)}}
+  return R;
+}
+function cadaCuanto(porDia){const d=1/porDia;return d<1.5?`vendes ${(porDia).toFixed(porDia<3?1:0).replace('.0','')} al día`:`vendes 1 cada ${Math.round(d)} días`}
+function promoTxt(p){return `✨ *${p.nombre}*${p.marca?' · '+p.marca:''}\n100% original · *S/ ${+p.precio||0}*\nPídelo por WhatsApp 926 252 995 📲\nMira todo el catálogo 👉 ${new URL('catalogo.html',location.href.split('#')[0]).href}`}
+function mesVsMes(P){
+  const t=new Date(),y=t.getFullYear(),m=t.getMonth(),d=t.getDate();
+  const iso=(Y,M,D)=>`${Y}-${String(M+1).padStart(2,'0')}-${String(D).padStart(2,'0')}`;
+  const pm=new Date(y,m-1,1),py=pm.getFullYear(),pmo=pm.getMonth(),finPrev=new Date(y,m,0).getDate();
+  const rng=(a,b)=>{const L=S.mov.filter(x=>(x.tipo==='Venta'||x.tipo==='Devolución')&&(x.fecha||'')>=a&&(x.fecha||'')<=b);
+    const sg=x=>x.tipo==='Venta'?1:-1;const uds=L.reduce((s,x)=>s+sg(x)*(+x.cant||0),0),ing=L.reduce((s,x)=>s+sg(x)*(+x.total||0),0);
+    const gan=L.reduce((s,x)=>s+sg(x)*((+x.total||0)-(+x.cant||0)*(x.costoUnit??P[x.codigo]?.costo??0)),0);const n=L.filter(x=>x.tipo==='Venta').length;
+    return{uds,ing,gan,tk:n?ing/n:0}};
+  return{act:rng(iso(y,m,1),iso(y,m,d)),ant:rng(iso(py,pmo,1),iso(py,pmo,Math.min(d,finPrev))),antTotal:rng(iso(py,pmo,1),iso(py,pmo,finPrev)),d,mes:MES[m],mesAnt:MES[pmo]};
+}
+function varPill(a,b){if(!b)return a?'<span class="pill p-ok">nuevo</span>':'<span class="small muted">—</span>';const v=(a-b)/Math.abs(b)*100;const up=v>=0;
+  return `<span class="pill ${up?'p-ok':'p-bad'}">${up?'▲':'▼'} ${Math.abs(Math.round(v))}%</span>`}
 function resumen(P,T,debts,apart){
   const recup=T.inv?T.cobrado/T.inv:0;
-  const low=Object.values(P).filter(p=>p.comprado&&p.disp<=(+p.stockMin||1)).sort((a,b)=>a.disp-b.disp);
+  const RT=ritmo(P);
+  const low=Object.values(RT).filter(r=>r.p.disp<=(+r.p.stockMin||1)||(r.dias!==null&&r.dias<=14)).sort((a,b)=>(a.dias??(a.p.disp>0?999:-1))-(b.dias??(b.p.disp>0?999:-1))||a.p.disp-b.p.disp);
+  const lentos=Object.values(RT).filter(r=>r.p.disp>0&&r.sinVenta>=30).sort((a,b)=>b.sinVenta-a.sinVenta);
+  const MM=mesVsMes(P);
   const byM={};const put=(k,f,v)=>{byM[k]=byM[k]||{i:0,g:0,x:0};byM[k][f]+=v};
   for(const m of S.mov){if(m.tipo!=='Venta'&&m.tipo!=='Devolución')continue;const k=(m.fecha||'').slice(0,7);const sg=m.tipo==='Venta'?1:-1;const p=P[m.codigo];
     put(k,'i',sg*(+m.total||0));put(k,'g',sg*((+m.total||0)-(+m.cant||0)*(m.costoUnit??p?.costo??0)))}
@@ -129,7 +163,14 @@ function resumen(P,T,debts,apart){
   <div class="grid2">
    <div class="box"><h3>Ventas por mes</h3><div class="bars">${bars}</div></div>
    <div class="box"><h3>Últimos movimientos</h3>${rec}</div>
-   <div class="box"><h3>Reponer pronto (${low.length})</h3>${low.length?low.map(p=>`<div class="item"><div>${esc(p.nombre)}<div class="small muted">${esc(p.marca)}</div></div><div>${pill(p.estado)} <span class="small muted">${p.disp} und</span></div></div>`).join(''):'<div class="empty">Todo con stock suficiente.</div>'}</div>
+   <div class="box"><h3>Cómo va tu mes</h3><p class="small muted" style="margin:-4px 0 8px">Del 1 al ${MM.d} de ${MM.mes} frente a los mismos días de ${MM.mesAnt}</p>
+    <div class="item"><div>Unidades vendidas</div><div style="text-align:right"><b>${MM.act.uds}</b> <span class="small muted">vs ${MM.ant.uds}</span> ${varPill(MM.act.uds,MM.ant.uds)}</div></div>
+    <div class="item"><div>Ingresos</div><div style="text-align:right"><b>${PEN0(MM.act.ing)}</b> <span class="small muted">vs ${PEN0(MM.ant.ing)}</span> ${varPill(MM.act.ing,MM.ant.ing)}</div></div>
+    <div class="item"><div>Ganancia bruta</div><div style="text-align:right"><b>${PEN0(MM.act.gan)}</b> <span class="small muted">vs ${PEN0(MM.ant.gan)}</span> ${varPill(MM.act.gan,MM.ant.gan)}</div></div>
+    <div class="item"><div>Venta promedio</div><div style="text-align:right"><b>${PEN0(MM.act.tk)}</b> <span class="small muted">vs ${PEN0(MM.ant.tk)}</span> ${varPill(MM.act.tk,MM.ant.tk)}</div></div>
+    <div class="small muted" style="margin-top:6px">${MM.mesAnt} completo: ${MM.antTotal.uds} und · ${PEN0(MM.antTotal.ing)}</div></div>
+   <div class="box"><h3>Se está agotando (${low.length})</h3>${low.length?low.map(r=>`<div class="item"><div><b>${esc(r.p.nombre)}</b><div class="small muted">${r.p.disp<=0?'Ya no hay disponible':r.dias!==null?`Alcanza para ~${r.dias} ${r.dias===1?'día':'días'} · ${cadaCuanto(r.porDia)}`:'Sin ventas recientes para calcular'}</div></div><div style="text-align:right">${pill(r.p.estado)}<div class="small muted">${r.p.disp} und</div></div></div>`).join('')+'<div class="small muted" style="margin-top:6px">Pídelos al importador a tiempo. Los días salen de lo que vendiste en los últimos 30 días.</div>':'<div class="empty">Todo con stock suficiente.</div>'}</div>
+   <div class="box"><h3>Casi no se venden (${lentos.length})</h3>${lentos.length?lentos.map(r=>`<div class="item"><div><b>${esc(r.p.nombre)}</b><div class="small muted">${r.ult?`Última venta hace ${r.sinVenta} días`:`Sin ventas desde que llegó (${r.sinVenta} días)`} · ${r.p.disp} und</div></div><button class="btn sm" data-a="promo" data-id="${esc(r.p.id)}">Promocionar</button></div>`).join('')+'<div class="small muted" style="margin-top:6px">“Promocionar” copia un texto listo para tu estado de WhatsApp. También puedes meterlos en un pack.</div>':'<div class="empty">Aún no hay perfumes quietos. Aquí aparecen los que pasen 30 días sin venderse.</div>'}</div>
   </div>`;
 }
 function inventario(P){
@@ -637,6 +678,7 @@ function bind(){
     const F={treglas:formReglas,venta:formVenta,salida:formSalida,newp:()=>formProd(),compra:formCompra,sepnew:formSeparado,gasto:formGasto,traspaso:formTraspaso,pct:formPct,yape:formYape,newpack:()=>formPack()};
     if(F[a])return F[a]();
     if(a==='tnew')return formTarjeta(null,{nom:b.dataset.nom,tel:b.dataset.tel});if(a==='tedit')return formTarjeta(id);if(a==='tsello')return formSellos(id);if(a==='tcanje')return formCanje(id,b.dataset.en);
+    if(a==='promo'){const p=calc()[id];const t=promoTxt(p);return navigator.clipboard.writeText(t).then(()=>toast('Texto copiado: pégalo en tu estado'),()=>prompt('Copia el texto:',t))}
     if(a==='tcopy'){const u=linkTarjeta(id);return navigator.clipboard.writeText(u).then(()=>toast('Link copiado'),()=>prompt('Copia el link de la tarjeta:',u))}
     if(a==='abono')formCobro('movimientos',id);else if(a==='sepabono')formCobro('separados',id);else if(a==='sepentrega')formEntrega(id);else if(a==='sepcancel')formCancelSep(id);
     else if(a==='editp')formProd(id);else if(a==='editpack')formPack(id);else if(a==='editm')formEditMov(id);else if(a==='editc')formEditCompra(id);
