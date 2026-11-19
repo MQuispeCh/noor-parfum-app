@@ -80,7 +80,7 @@ function build(host, api) {
   ring.rotation.x = Math.PI / 2; ring.position.y = 3.05; scene.add(ring);
 
   /* ---------- paredes (una por categoría) ---------- */
-  const shelfMat = new THREE.MeshStandardMaterial({ color: GOLD, metalness: 0.85, roughness: 0.28 });
+  const shelfMat = new THREE.MeshStandardMaterial({ color: 0xc9a46c, metalness: 0.25, roughness: 0.45, emissive: 0x3a2a14, emissiveIntensity: 0.6 });
   const wallMat = new THREE.MeshStandardMaterial({ color: 0x15120e, roughness: 0.85 });
   const glowTex = canvasTex(512, 512, (g, w, h) => {
     const r = g.createRadialGradient(w / 2, h * 0.45, 10, w / 2, h * 0.45, w * 0.62);
@@ -88,6 +88,7 @@ function build(host, api) {
     g.fillStyle = r; g.fillRect(0, 0, w, h);
   });
   const loader = new THREE.TextureLoader();
+  const shadowTex = canvasTex(256, 64, (g, w, h) => { g.scale(1, h / w); const r = g.createRadialGradient(w / 2, w / 2, 2, w / 2, w / 2, w / 2); r.addColorStop(0, "rgba(0,0,0,.75)"); r.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = r; g.fillRect(0, 0, w, w); });
   const pickables = []; const items = [];
 
   BAYS.forEach((B, bi) => {
@@ -125,13 +126,10 @@ function build(host, api) {
       const g = new THREE.Group(); g.position.set(x, shelf + 0.018, -APO + 0.2); grp.add(g);
       const mat = new THREE.MeshBasicMaterial({ transparent: true, alphaTest: 0.04, depthWrite: true, toneMapped: false, opacity: 0 });
       const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat); g.add(mesh);
-      const refl = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false, toneMapped: false }));
-      refl.scale.y = -1; g.add(refl);
       loader.load(`catalogo/img/${p.k}.webp`, (t) => {
         t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
         const a = t.image.width / t.image.height; let w = SLOT_W * 0.86, h = w / a; if (h > SLOT_H) { h = SLOT_H; w = h * a; }
         mat.map = t; mat.needsUpdate = true; mesh.scale.set(w, h, 1); mesh.position.y = h / 2;
-        refl.material.map = t; refl.material.needsUpdate = true; refl.scale.set(w, -h * 0.35, 1); refl.position.y = -h * 0.175 - 0.02;
         it.ready = true; it.h = h; loaded++; progress();
       }, undefined, () => { loaded++; progress(); });
       // etiqueta de precio
@@ -152,7 +150,9 @@ function build(host, api) {
         badge = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.06), new THREE.MeshBasicMaterial({ map: bt, transparent: true, toneMapped: false }));
         badge.position.set(0, -0.15, 0.14); g.add(badge);
       }
-      const it = { p, g, mesh, refl, pt, badge, bay: bi, x, yaw, ready: false, h: SLOT_H, lift: 0, dim: 1 };
+      const shadow = new THREE.Mesh(new THREE.PlaneGeometry(SLOT_W * 0.8, 0.12), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, opacity: 0 }));
+      shadow.rotation.x = -Math.PI / 2; shadow.position.set(0, 0.002, 0.02); g.add(shadow);
+      const it = { p, g, mesh, pt, shadow, badge, bay: bi, x, yaw, ready: false, h: SLOT_H, lift: 0, dim: 1 };
       // zona táctil del tamaño de todo el espacio del perfume (incluye su precio)
       const hit = new THREE.Mesh(new THREE.PlaneGeometry(SLOT_W * 0.96, SLOT_H + 0.16), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false, colorWrite: false }));
       hit.position.set(0, (SLOT_H + 0.16) / 2 - 0.13, 0.15); g.add(hit);
@@ -176,7 +176,7 @@ function build(host, api) {
     const dx = Math.sin(view.yaw), dz = -Math.cos(view.yaw);
     let back = view.back, y = 1.32;
     const mob = cam.aspect < 0.8;
-    if (focus) { back = -APO + (mob ? 1.55 : 2.2); y = focus.y0 + 0.28; }
+    if (focus) { back = -APO + (mob ? 2.15 : 2.2); y = focus.y0 + 0.28; }
     cam.position.set(-dx * back, y, -dz * back);
     if (focus) {
       const wp = new THREE.Vector3(); focus.mesh.getWorldPosition(wp);
@@ -280,7 +280,7 @@ function build(host, api) {
     const k = still ? 1 : 1 - Math.pow(0.0015, dt);
     if (!dragging) view.yaw += (goal.yaw - view.yaw) * k;
     view.pitch += (goal.pitch - view.pitch) * k;
-    view.fov += ((focus ? (cam.aspect < 0.8 ? 50 : 48) : goal.fov) - view.fov) * k;
+    view.fov += ((focus ? (cam.aspect < 0.8 ? 54 : 48) : goal.fov) - view.fov) * k;
     focusAmt += ((focus ? 1 : 0) - focusAmt) * k;
     for (const it of items) {
       const tgt = it === focus ? 0.07 : it === hov ? 0.035 : 0; it.lift += (tgt - it.lift) * k;
@@ -288,7 +288,7 @@ function build(host, api) {
       it.g.position.y = it.y0 + it.lift; it.g.scale.setScalar(1 + it.lift * 0.9);
       it.dim += ((it.dimGoal ?? 1) - it.dim) * k;
       const a = (it.ready ? 1 : 0) * it.dim * ease(Math.min(1, intro * 1.4));
-      it.mesh.material.opacity = a; it.refl.material.opacity = a * 0.16; it.pt.material.opacity = a; if (it.badge) it.badge.material.opacity = a;
+      it.mesh.material.opacity = a; it.shadow.material.opacity = a * 0.55; it.pt.material.opacity = a; if (it.badge) it.badge.material.opacity = a;
     }
     key.intensity = 18 * ease(intro);
     placeCam();

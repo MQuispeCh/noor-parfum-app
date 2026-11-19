@@ -294,7 +294,7 @@ function setView(v){document.body.classList.toggle("gv",v==="g");document.body.c
   if(v==="t")abrirTienda();else if(T3)T3.pause()}
 /* Tienda 3D: se descarga solo cuando el cliente la abre */
 function abrirTienda(k){
-  T3p=T3p||import("./catalogo/tienda3d.js?v=20261119a").then(m=>m.start($("t3host"),{P,add,tagOf,
+  T3p=T3p||import("./catalogo/tienda3d.js?v=20261119b").then(m=>m.start($("t3host"),{P,add,tagOf,
     verDetalle:kk=>{setNav("all");cat="all";if(qs){$("q").value="";qs="";$("srch").classList.remove("has");T3&&T3.filter(()=>true)}setView("s");build("all");const i=list.findIndex(p=>p.k===kk);if(i>=0)go(i);window.scrollTo({top:stage.offsetTop-90,behavior:"smooth"})},
     sinWebGL:()=>{$("vt").remove();setView("s");toast("Tu celular no puede abrir la tienda 3D")}}));
   T3p.then(t=>{if(!t)return;T3=t;T3.resume();if(qs.trim()){const w=norm(qs.trim()).split(/\s+/);T3.filter(p=>w.every(x=>hay(p).includes(x)))}if(k)T3.goProduct(k)}).catch(e=>{console.error(e);T3p=null;setView("s");toast("No se pudo abrir la tienda 3D")});
