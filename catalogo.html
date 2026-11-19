@@ -130,6 +130,48 @@ nav button small{opacity:.55;font-weight:600;margin-left:3px}
 .grid{display:none;max-width:1100px;margin:18px auto 0;padding:0 16px;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
 body.gv .grid{display:grid}
 body.gv .stage,body.gv .info,body.gv .sub{display:none}
+/* ---------- Tienda 3D ---------- */
+.t3host{display:none;position:relative;max-width:1180px;margin:16px auto 0;height:min(74vh,720px);border-radius:24px;overflow:hidden;background:#0b0b0d;box-shadow:0 30px 70px -30px #000a}
+body.tv .t3host{display:block}
+body.tv .stage,body.tv .info,body.tv .sub,body.tv .grid{display:none}
+.t3,.t3 canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.t3 canvas{touch-action:none;cursor:grab}
+.t3 canvas:active{cursor:grabbing}
+.t3-hint{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);background:#0b0b0dcc;color:#ecd5a8;border:1px solid #d4af7c55;padding:10px 16px;border-radius:999px;font:600 11px Montserrat;letter-spacing:.08em;white-space:nowrap;pointer-events:none;transition:opacity .5s}
+.t3-hint.off{opacity:0}
+.t3-wall{position:absolute;left:14px;top:14px;color:#d4af7c;font:700 10px Montserrat;letter-spacing:.24em;background:#0b0b0d99;padding:7px 12px;border-radius:999px;pointer-events:none}
+.t3-arr{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:1px solid #d4af7c66;background:#0b0b0dcc;color:#ecd5a8;font-size:26px;line-height:1;cursor:pointer;z-index:2}
+.t3-arr.l{left:12px}.t3-arr.r{right:12px}
+.t3-arr:hover{border-color:#d4af7c}
+.t3-load{position:absolute;inset:0;display:grid;place-content:center;gap:14px;text-align:center;color:#ecd5a8;font:600 11px Montserrat;letter-spacing:.2em;background:#0b0b0d;transition:opacity .6s;pointer-events:none}
+.t3-load::before{content:"";width:180px;height:2px;background:#2a241a;grid-row:2}
+.t3-load span{grid-row:2;grid-column:1;height:2px;width:0;background:#d4af7c;transition:width .3s}
+.t3-load.off{opacity:0}
+.t3-sheet{position:absolute;z-index:3;right:16px;top:16px;bottom:16px;width:min(360px,calc(100% - 32px));background:#f7f1e6;color:#16120d;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:10px;overflow:auto;transform:translateX(calc(100% + 30px));transition:transform .45s cubic-bezier(.16,1,.3,1);box-shadow:0 20px 50px #000a}
+.t3-sheet.on{transform:none}
+.t3-sheet img{height:150px;object-fit:contain;align-self:center;max-width:100%}
+.t3-sheet small{font-size:10px;letter-spacing:.18em;color:#8b7a5f;font-weight:600;text-transform:uppercase}
+.t3-sheet h3{font-family:Cinzel,serif;font-size:21px;margin:4px 0 6px;line-height:1.2}
+.t3-sheet p{font-size:12.5px;line-height:1.55;color:#4a4033;margin:8px 0 0}
+.t3-pr{font-family:Cinzel,serif;font-weight:700;font-size:22px}
+.t3-opts{display:flex;gap:6px;flex-wrap:wrap}
+.t3-opts button{border:1.5px solid #d9d1c3;background:#fff;border-radius:12px;padding:8px 10px;font:600 11px Montserrat;color:#3a332a;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.t3-opts button b{font-family:Cinzel,serif;font-size:14px;color:#16120d}
+.t3-opts button.on{border-color:#111;background:#111;color:#e8cf9c}.t3-opts button.on b{color:#fff}
+.t3-btns{display:grid;gap:8px;margin-top:12px}
+.t3-add{border:0;background:#111;color:#e8cf9c;border-radius:999px;padding:14px;font:700 11px Montserrat;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.t3-more{border:1.5px solid #d9d1c3;background:none;border-radius:999px;padding:12px;font:700 11px Montserrat;letter-spacing:.1em;color:#3a332a;cursor:pointer;text-transform:uppercase}
+.t3-x{position:absolute;right:10px;top:8px;border:0;background:none;font-size:26px;color:#8b7a5f;cursor:pointer;width:36px;height:36px}
+@media (max-width:640px){
+ .t3host{height:72vh;border-radius:0;margin-top:12px}
+ .t3-arr{width:38px;height:38px;font-size:22px}
+ .t3-sheet{top:auto;left:10px;right:10px;bottom:10px;width:auto;max-height:62%;transform:translateY(calc(100% + 20px));flex-direction:row;flex-wrap:wrap;align-items:flex-start}
+ .t3-sheet img{height:96px;width:30%;align-self:flex-start}
+ .t3-sheet .t3-tx{flex:1;min-width:0}
+ .t3-sheet h3{font-size:17px}
+ .t3-sheet p{display:none}
+ .t3-btns{grid-template-columns:1fr 1fr}
+}
 .card{background:#fff;border:1px solid #ebe3d6;border-radius:18px;padding:12px 12px 14px;display:flex;flex-direction:column;cursor:pointer;position:relative;transition:transform .2s,box-shadow .2s}
 .card:hover{transform:translateY(-3px);box-shadow:0 10px 26px #0000000f}
 .card .im{height:150px;display:flex;align-items:flex-end;justify-content:center;border-radius:12px;background:radial-gradient(closest-side,var(--t),transparent 90%)}
@@ -176,7 +218,7 @@ body.gv .stage,body.gv .info,body.gv .sub{display:none}
 <nav id="nav">
  <button data-c="all" class="on">Todos</button><button data-c="navidad">🎄 Navidad</button><button data-c="el">Para él</button><button data-c="ella">Para ella</button><button data-c="unisex">Unisex</button><button data-c="sets">Sets y más</button>
 </nav>
-<div class="tools"><label class="srch" id="srch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="q" type="search" placeholder="Buscar perfume, marca o nota…" autocomplete="off"><button type="button" id="qx" aria-label="Borrar">×</button></label><div class="vw" id="vw"><button data-v="s" class="on">Vitrina</button><button data-v="g">Ver todos</button></div></div>
+<div class="tools"><label class="srch" id="srch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="q" type="search" placeholder="Buscar perfume, marca o nota…" autocomplete="off"><button type="button" id="qx" aria-label="Borrar">×</button></label><div class="vw" id="vw"><button data-v="s" class="on">Vitrina</button><button data-v="g">Ver todos</button><button data-v="t" id="vt">Tienda 3D</button></div></div>
 <div class="sub">PERFUMES ÁRABES 100% ORIGINALES</div>
 <div class="stage" id="stage">
  <div class="glow" id="glow"></div>
@@ -187,6 +229,7 @@ body.gv .stage,body.gv .info,body.gv .sub{display:none}
 </div>
 <section class="info" id="info"></section>
 <section class="grid" id="grid"></section>
+<section class="t3host" id="t3host" aria-label="Tienda 3D"></section>
 <section class="how">
  <div><i>1</i><h5>Elige tu aroma</h5><p>Desliza la vitrina, elige frasco o decant y toca “Agregar al pedido”.</p></div>
  <div><i>2</i><h5>Envía tu pedido</h5><p>Agrega tus perfumes al pedido y envíalo por WhatsApp con un toque.<br>926 252 995</p></div>
@@ -246,10 +289,19 @@ function grid(){
   g.innerHTML=list.length?list.map((p,i)=>`<div class="card" data-i="${i}" style="--t:${p.t}">${tagOf(p)?`<span class="tg${p.disp===0?" ped":""}">${tagOf(p)}</span>`:""}<div class="im"><img src="catalogo/img/${p.k}.webp" alt="${p.n}" loading="lazy"></div><b>${p.n}</b><small>${p.b} · ${p.ml}</small><div class="pr"><span>S/ ${p.p}${p.o.length>1?`<i class="dc">Decant desde S/ ${Math.min(...p.o.map(o=>o.p))}</i>`:""}</span><button data-add="${p.k}" aria-label="Agregar ${p.n}">+</button></div></div>`).join(""):`<div class="gempty">No encontramos ese perfume. Prueba con otro nombre.</div>`;
 }
 $("grid").onclick=e=>{const a=e.target.closest("[data-add]");if(a){add(a.dataset.add,"f");return}const c=e.target.closest(".card");if(!c)return;setView("s");go(+c.dataset.i);window.scrollTo({top:stage.offsetTop-90,behavior:"smooth"})};
-function setView(v){document.body.classList.toggle("gv",v==="g");$("vw").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));if(v==="s")layout()}
+let T3=null,T3p=null;
+function setView(v){document.body.classList.toggle("gv",v==="g");document.body.classList.toggle("tv",v==="t");$("vw").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));if(v==="s")layout();
+  if(v==="t")abrirTienda();else if(T3)T3.pause()}
+/* Tienda 3D: se descarga solo cuando el cliente la abre */
+function abrirTienda(k){
+  T3p=T3p||import("./catalogo/tienda3d.js?v=20261119a").then(m=>m.start($("t3host"),{P,add,tagOf,
+    verDetalle:kk=>{setNav("all");cat="all";if(qs){$("q").value="";qs="";$("srch").classList.remove("has");T3&&T3.filter(()=>true)}setView("s");build("all");const i=list.findIndex(p=>p.k===kk);if(i>=0)go(i);window.scrollTo({top:stage.offsetTop-90,behavior:"smooth"})},
+    sinWebGL:()=>{$("vt").remove();setView("s");toast("Tu celular no puede abrir la tienda 3D")}}));
+  T3p.then(t=>{if(!t)return;T3=t;T3.resume();if(qs.trim()){const w=norm(qs.trim()).split(/\s+/);T3.filter(p=>w.every(x=>hay(p).includes(x)))}if(k)T3.goProduct(k)}).catch(e=>{console.error(e);T3p=null;setView("s");toast("No se pudo abrir la tienda 3D")});
+}
 $("vw").onclick=e=>{const b=e.target.closest("button");if(b)setView(b.dataset.v)};
-let qt;$("q").oninput=e=>{qs=e.target.value;$("srch").classList.toggle("has",!!qs);clearTimeout(qt);qt=setTimeout(()=>build(null),120)};
-$("qx").onclick=()=>{$("q").value="";qs="";$("srch").classList.remove("has");build(null);$("q").focus()};
+let qt;$("q").oninput=e=>{qs=e.target.value;$("srch").classList.toggle("has",!!qs);clearTimeout(qt);qt=setTimeout(()=>{build(null);if(T3&&document.body.classList.contains("tv")){const w=norm(qs.trim()).split(/\s+/).filter(Boolean);T3.filter(p=>w.every(x=>hay(p).includes(x)))}},120)};
+$("qx").onclick=()=>{$("q").value="";qs="";$("srch").classList.remove("has");build(null);if(T3)T3.filter(()=>true);$("q").focus()};
 function layout(){
   const W=stage.clientWidth,mob=W<640,sOff=mob?.5:.56;
   const aw=els[act]?els[act].offsetWidth:200;
@@ -285,7 +337,7 @@ function render(){
 }
 function go(i){act=Math.max(0,Math.min(list.length-1,i));layout()}
 $("prev").onclick=()=>go(act-1);$("next").onclick=()=>go(act+1);
-document.addEventListener("keydown",e=>{if($("drawer").classList.contains("on")){if(e.key==="Escape")closeD();return}if(e.target.tagName==="INPUT")return;if(e.key==="ArrowLeft")go(act-1);if(e.key==="ArrowRight")go(act+1)});
+document.addEventListener("keydown",e=>{if($("drawer").classList.contains("on")){if(e.key==="Escape")closeD();return}if(e.target.tagName==="INPUT"||document.body.classList.contains("tv"))return;if(e.key==="ArrowLeft")go(act-1);if(e.key==="ArrowRight")go(act+1)});
 let wl=0;stage.addEventListener("wheel",e=>{const d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;e.preventDefault();const now=Date.now();if(now-wl<180||Math.abs(d)<6)return;wl=now;go(act+(d>0?1:-1))},{passive:false});
 let sx=null,moved=false,base=0;
 stage.addEventListener("pointerdown",e=>{if(e.target.closest(".arrow"))return;sx=e.clientX;base=act;moved=false});
@@ -293,7 +345,7 @@ window.addEventListener("pointermove",e=>{if(sx===null)return;const dx=e.clientX
 window.addEventListener("pointerup",()=>{sx=null;setTimeout(()=>moved=false,30)});
 $("nav").querySelectorAll("button").forEach(b=>{const n=P.filter(p=>b.dataset.c==="all"||p.c===b.dataset.c).length;b.insertAdjacentHTML("beforeend",`<small>${n}</small>`)});
 const setNav=c=>document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x.dataset.c===c));
-$("nav").onclick=e=>{const b=e.target.closest("button");if(!b)return;setNav(b.dataset.c);build(b.dataset.c)};
+$("nav").onclick=e=>{const b=e.target.closest("button");if(!b)return;setNav(b.dataset.c);build(b.dataset.c);if(T3&&document.body.classList.contains("tv"))T3.goCat(b.dataset.c)};
 window.addEventListener("resize",layout);
 /* ---------- carrito ---------- */
 function add(k,o){
@@ -344,9 +396,11 @@ if(XMAS){$("promo").innerHTML='🎄 <b>REGALOS DE NAVIDAD:</b> packs listos para
 else if(!PROMO)$("promo").remove();
 if($("promo"))$("promo").insertAdjacentHTML("beforeend",PROMO?' · <u style="cursor:pointer">🎄 Ver packs de Navidad</u>':"");
 $("promo")&&($("promo").onclick=e=>{if(e.target.tagName!=="U")return;setNav("navidad");setView("s");build("navidad");$("nav").querySelector('[data-c=navidad]').scrollIntoView({inline:"center",block:"nearest"})});
+{const cv=document.createElement("canvas");if(!(cv.getContext("webgl2")||cv.getContext("webgl")))$("vt").remove()}
 const H0=decodeURIComponent(location.hash.slice(1));
 build("all");
 {const i=list.findIndex(p=>p.k===H0);if(i>0)go(i)}
+if(new URLSearchParams(location.search).has("tienda")&&$("vt"))setView("t");
 paint();
 (async()=>{try{
   if(!window.supabase||!window.NOOR_CONFIG)return;
