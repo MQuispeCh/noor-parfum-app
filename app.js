@@ -273,7 +273,7 @@ function instrucciones(){
    <div class="box"><h3>Separados y encargos</h3><ol><li>En <b>Separados › + Nuevo separado</b> registra al cliente, el perfume y el adelanto (tu regla: 50%).</li><li>Si el perfume está en stock, queda apartado y nadie más lo puede vender. Si no hay, márcalo como <b>Encargo</b>.</li><li>Con <b>Abono</b> registras pagos parciales; con <b>WhatsApp</b> le avisas cuánto le falta.</li><li>Al entregarlo toca <b>Entregar</b>: se convierte en venta y, si aún debe algo, pasa a Por cobrar.</li><li>Si el cliente se arrepiente, <b>Cancelar</b> registra cuánto le devolviste.</li></ol></div>
    <div class="box"><h3>Catálogo para clientes</h3><p>La dirección <b>…/noor-parfum-app/catalogo.html</b> es pública: vitrina con fotos, notas y precios, buscador, carrito y pedido por WhatsApp. El stock sale solo de esta app: si un perfume se queda en 1 aparece “¡Última unidad!” y si llega a 0 aparece “A pedido”. Cada perfume tiene su propio link para compartir (botón Compartir). Ponla en la biografía de Instagram y TikTok.</p></div>
    <div class="box"><h3>Reseñas</h3><ol><li>Unos días después de la entrega, en <b>Ventas</b> toca <b>Pedir reseña</b> en esa venta: se abre WhatsApp con el mensaje y un link único.</li><li>El cliente elige las estrellas y, si quiere, deja un comentario. Se publica sola en el catálogo como <b>compra verificada</b>.</li><li>En la pestaña <b>Reseñas</b> respóndelas: tu respuesta también se ve en el catálogo.</li></ol><p class="small muted">Oculta una reseña solo si es ofensiva o spam. Cada link sirve una sola vez, así nadie puede inventar opiniones.</p></div>
-   <div class="box"><h3>Tarjeta de fidelidad</h3><ol><li>En <b>Tarjetas › + Nueva tarjeta</b> pon el nombre y el celular del cliente.</li><li>Toca <b>Enviar tarjeta</b>: le llega por WhatsApp el link de su tarjeta virtual. No necesita descargar nada.</li><li>Cada vez que registres una venta con ese celular, se suma <b>1 sello por perfume o set</b> (los body spray y decants no suman).</li><li>Cuando llegue a un premio, aparece <b>Premio listo</b>: avísale por WhatsApp y, al dárselo, toca <b>Entregar</b>.</li></ol><p class="small muted">Los premios se cambian en <b>Reglas</b>. Con <b>Sellos ±</b> corriges a mano.</p></div>
+   <div class="box"><h3>Tarjeta de fidelidad</h3><ol><li>En <b>Tarjetas › + Nueva tarjeta</b> pon el nombre y el celular del cliente.</li><li>Toca <b>Enviar tarjeta</b>: le llega por WhatsApp el link de su tarjeta virtual. No necesita descargar nada.</li><li>Cada vez que registres una venta con ese celular, se suman sellos según la regla que elijas en <b>Reglas</b>: 1 por compra o 1 por cada perfume o set (los body spray y decants no suman).</li><li>Cuando llegue a un premio, aparece <b>Premio listo</b>: avísale por WhatsApp y, al dárselo, toca <b>Entregar</b>.</li></ol><p class="small muted">Si un cliente tiene sellos de más, toca <b>Revisar sellos</b>: ves qué ventas los dieron y puedes quitar o sumar uno con su motivo. El cliente no recibe ningún aviso.</p></div>
    <div class="box"><h3>Packs de regalo</h3><p>Un pack junta varios productos con un precio especial (ej. perfume + body spray). No tiene stock propio: la app calcula cuántos puedes armar con lo que hay. Al venderlo, se descuenta cada producto y el cobro se reparte entre ellos. Se crean en <b>Inventario › + Nuevo pack</b>.</p></div>
    <div class="box"><h3>Gastos</h3><p>Registra todo lo que sale para el negocio y no es mercadería: publicidad, delivery, bolsas, frascos para decants, pasajes. Se restan de la ganancia, así ves la <b>ganancia neta</b> real. Normalmente se pagan con la Cuenta del negocio.</p></div>
    <div class="box"><h3>Socios y capital</h3><ul><li>Lo que se cobra entra a la <b>Cuenta del negocio</b> (opción por defecto en ventas y pagos).</li><li>Las compras se marcan <b>Ambos (50/50)</b> cuando cada uno puso la mitad. Si uno puso todo, elige su nombre.</li><li>Los gastos se pagan con la <b>Cuenta del negocio</b>, salvo que alguno lo pague de su bolsillo.</li><li>En <b>Socios</b> ves el capital que puso cada uno, el saldo de la cuenta, cuánto vale hoy el negocio (dinero + mercadería + por cobrar) y la ganancia acumulada.</li><li>Si alguno mete más dinero, regístralo como <b>Aporte de capital</b>; cuando decidan repartir, como <b>Retiro de ganancia</b>.</li></ul></div>
@@ -286,13 +286,26 @@ function instrucciones(){
 
 /* ---------- tarjeta de fidelidad ---------- */
 const FID_DEF={meta:6,premios:[{en:3,premio:'Body spray de regalo'},{en:6,premio:'S/ 40 de descuento en tu siguiente perfume'}]};
-const reglas=()=>{const r=S.ajustes.fidelidad||FID_DEF;return{meta:+r.meta||6,premios:[...(r.premios||[])].sort((a,b)=>a.en-b.en)}};
+const reglas=()=>{const r=S.ajustes.fidelidad||FID_DEF;return{meta:+r.meta||6,modo:r.modo==='compra'?'compra':'perfume',premios:[...(r.premios||[])].sort((a,b)=>a.en-b.en)}};
 const telKey=t=>String(t||'').replace(/\D/g,'').slice(-9);
 const tarjetaDe=tel=>{const k=telKey(tel);return k.length===9?S.tarj.find(t=>telKey(t.telefono)===k):null};
 const cuentaSello=p=>p&&(p.categoria==='Perfume'||p.categoria==='Set');
-function sellosDe(t,P){const k=telKey(t.telefono);if(k.length<9)return +t.extra||0;
-  return S.mov.filter(m=>(m.tipo==='Venta'||m.tipo==='Devolución')&&telKey(m.telefono)===k&&(m.fecha||'')>=(t.desde||'')&&cuentaSello(P[m.codigo]))
-    .reduce((a,m)=>a+(m.tipo==='Devolución'?-1:1)*(+m.cant||0),0)+(+t.extra||0)}
+/* Detalle de sellos de una tarjeta: qué ventas los dieron y los ajustes a mano.
+   modo "perfume": 1 sello por cada perfume o set · modo "compra": 1 sello por día con compra (aunque lleve varios). Igual que supabase/006. */
+function detalleSellos(t,P){const k=telKey(t.telefono);const modo=reglas().modo;
+  const L=k.length<9?[]:S.mov.filter(m=>(m.tipo==='Venta'||m.tipo==='Devolución')&&telKey(m.telefono)===k&&(m.fecha||'')>=(t.desde||'')&&cuentaSello(P[m.codigo])).sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||''));
+  const filas=[];
+  if(modo==='compra'){const byF={};for(const m of L){(byF[m.fecha]=byF[m.fecha]||[]).push(m)}
+    for(const f of Object.keys(byF).sort()){const ms=byF[f];const net=ms.reduce((a,m)=>a+(m.tipo==='Devolución'?-1:1)*(+m.cant||0),0);filas.push({fecha:f,ms,sellos:net>0?1:0})}}
+  else for(const m of L)filas.push({fecha:m.fecha,ms:[m],sellos:(m.tipo==='Devolución'?-1:1)*(+m.cant||0)});
+  const ventas=filas.reduce((a,f)=>a+f.sellos,0),extra=+t.extra||0;
+  return{filas,ventas,extra,total:Math.max(0,ventas+extra),modo}}
+const sellosDe=(t,P)=>detalleSellos(t,P).total;
+/* Cuántos sellos suma una venta nueva (para el aviso al guardar) */
+function sellosNuevos(tel,fecha,uds,P){const t=tarjetaDe(tel);if(!t||!uds)return null;
+  if(reglas().modo!=='compra')return{t,n:uds};const k=telKey(tel);
+  const ya=S.mov.some(m=>m.tipo==='Venta'&&m.fecha===fecha&&telKey(m.telefono)===k&&cuentaSello(P[m.codigo]));return{t,n:ya?0:1}}
+const msgSellos=x=>x&&x.n?` · +${x.n} ${x.n===1?'sello':'sellos'} en la tarjeta de ${x.t.nombre.split(' ')[0]}`:'';
 /* Mismo cálculo que tarjeta.html: ciclo actual, sellos en la tarjeta, premios listos y el siguiente */
 function estadoTarjeta(G,canjes,R){const meta=R.meta;const k=(canjes||[]).filter(c=>+c.en===meta).length;const cur=Math.max(0,G-k*meta);const ciclo=k+1;
   const listos=R.premios.filter(p=>p.en<=Math.min(cur,meta)&&!(canjes||[]).some(c=>+c.ciclo===ciclo&&+c.en===p.en));
@@ -304,7 +317,7 @@ const linkTarjeta=id=>new URL('tarjeta.html?c='+encodeURIComponent(id),location.
 function nuevoCodigo(){const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789';const b=crypto.getRandomValues(new Uint8Array(10));return [...b].map(x=>A[x%A.length]).join('')}
 function msgTarjeta(t,e){const R=reglas();const n=(t.nombre||'').split(' ')[0];
   if(e&&e.listos.length)return `Hola ${n} 👋, te saluda *Noor Parfum* ✨\n\n¡Ganaste un premio en tu *Tarjeta Noor*! 🎁\n*${e.listos.map(p=>p.premio).join(' + ')}*\n\nÚsalo en tu próxima compra. Aquí ves tus sellos 👇\n${linkTarjeta(t.id)}\n\n¡Gracias por elegirnos! 🌙`;
-  return `Hola ${n} 👋, te saluda *Noor Parfum* ✨\n\nEsta es tu *Tarjeta Noor* de cliente frecuente 💳\nCon cada perfume que compras sumas un sello:\n${R.premios.map(p=>`• ${p.en} sellos → ${p.premio}`).join('\n')}\n\nMira tus sellos aquí 👇\n${linkTarjeta(t.id)}\n\nGuárdala en tu pantalla de inicio para tenerla siempre a la mano 🌙`}
+  return `Hola ${n} 👋, te saluda *Noor Parfum* ✨\n\nEsta es tu *Tarjeta Noor* de cliente frecuente 💳\n${R.modo==='compra'?'Con cada compra sumas un sello':'Con cada perfume que compras sumas un sello'}:\n${R.premios.map(p=>`• ${p.en} sellos → ${p.premio}`).join('\n')}\n\nMira tus sellos aquí 👇\n${linkTarjeta(t.id)}\n\nGuárdala en tu pantalla de inicio para tenerla siempre a la mano 🌙`}
 function sellosHTML(e){let h='';for(let i=1;i<=e.meta;i++){const pr=reglas().premios.find(p=>p.en===i);h+=`<span class="sello${i<=e.cur?' on':''}${pr?' gift':''}" title="${pr?esc(pr.premio):'Sello '+i}">${pr?'<svg viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg>':i}</span>`}return `<div class="sellos">${h}</div>`}
 function vTarjetas(P){
   if(S.missing&&S.missing.has('tarjetas'))return head('Tarjetas de fidelidad','Sellos y premios para tus clientes')+`<div class="box empty">Falta activar las tarjetas en la base de datos.<br>Ejecuta el archivo <b>supabase/004_tarjeta_fidelidad.sql</b> en Supabase › SQL Editor y recarga la app.</div>`;
@@ -317,8 +330,8 @@ function vTarjetas(P){
   const card=({t,e,G})=>`<div class="box tcard"><div class="item" style="padding-top:0"><div><b style="font-size:16px">${esc(t.nombre||'Sin nombre')}</b><div class="small muted">${esc(t.telefono||'')} · desde ${t.desde?fdate(t.desde):'el inicio'} · ${G} ${G===1?'sello':'sellos'} en total${e.ciclo>1?' · tarjeta n.º '+e.ciclo:''}</div></div><div style="text-align:right"><b style="font-size:18px">${e.cur}/${e.meta}</b>${e.sobra?`<div class="small muted">+${e.sobra} para la siguiente</div>`:''}</div></div>
     ${sellosHTML(e)}
     ${e.listos.length?e.listos.map(p=>`<div class="premio"><svg viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg><span><b>Premio listo:</b> ${esc(p.premio)}</span><button class="btn sm pri" data-a="tcanje" data-id="${esc(t.id)}" data-en="${p.en}">Entregar</button></div>`).join(''):`<div class="small muted" style="margin-top:8px">${e.sig?`Le ${e.faltan===1?'falta 1 sello':'faltan '+e.faltan+' sellos'} para: ${esc(e.sig.premio)}`:'Tarjeta completa'}</div>`}
-    <div class="acts" style="margin-top:8px"><a class="btn sm wa" href="${esc(waLink(t.telefono,msgTarjeta(t,e)))}" target="_blank" rel="noopener">${e.listos.length?'Avisar premio':'Enviar tarjeta'}</a><button class="btn sm" data-a="tcopy" data-id="${esc(t.id)}">Copiar link</button><button class="btn sm" data-a="tsello" data-id="${esc(t.id)}">Sellos ±</button><button class="btn sm" data-a="tedit" data-id="${esc(t.id)}">Editar</button></div></div>`;
-  return head('Tarjetas de fidelidad',`1 sello por cada perfume o set comprado · ${R.premios.map(p=>p.en+' sellos: '+esc(p.premio)).join(' · ')}`,'<button class="btn" data-a="treglas">Reglas</button><button class="btn pri" data-a="tnew">+ Nueva tarjeta</button>')+
+    <div class="acts" style="margin-top:8px"><a class="btn sm wa" href="${esc(waLink(t.telefono,msgTarjeta(t,e)))}" target="_blank" rel="noopener">${e.listos.length?'Avisar premio':'Enviar tarjeta'}</a><button class="btn sm" data-a="tcopy" data-id="${esc(t.id)}">Copiar link</button><button class="btn sm" data-a="tsello" data-id="${esc(t.id)}">Revisar sellos</button><button class="btn sm" data-a="tedit" data-id="${esc(t.id)}">Editar</button></div></div>`;
+  return head('Tarjetas de fidelidad',`${R.modo==='compra'?'1 sello por compra':'1 sello por cada perfume o set'} · ${R.premios.map(p=>p.en+' sellos: '+esc(p.premio)).join(' · ')}`,'<button class="btn" data-a="treglas">Reglas</button><button class="btn pri" data-a="tnew">+ Nueva tarjeta</button>')+
   `<div class="kpis"><div class="kpi"><div class="l">Tarjetas</div><div class="v">${L.length}</div><div class="d">clientes en el programa</div></div><div class="kpi"><div class="l">Premios por entregar</div><div class="v">${prem}</div><div class="d">entrégalos en su próxima compra</div></div><div class="kpi"><div class="l">Sellos dados</div><div class="v">${dados}</div><div class="d">perfumes comprados con tarjeta</div></div></div>`+
   (L.length>4?`<div class="box" style="margin-bottom:14px"><input id="tq" placeholder="Buscar cliente o celular" value="${esc(S.tq||'')}" autocomplete="off"></div>`:'')+
   (F.length?`<div class="grid2">${F.map(card).join('')}</div>`:`<div class="box empty">${L.length?'Ningún cliente coincide con la búsqueda.':'Aún no hay tarjetas. Crea la primera con <b>+ Nueva tarjeta</b> y envíasela por WhatsApp: el cliente ve sus sellos en su celular y se suman solos con cada venta registrada con su número.'}</div>`)+
@@ -346,12 +359,21 @@ function formTarjeta(id,pre){
   });
 }
 function formSellos(id){
-  const t=S.tarj.find(x=>x.id===id);
-  open(`<h3>Sellos de ${esc(t.nombre)}</h3><p class="small muted">Úsalo para corregir o para dar sellos por algo que no pasó por una venta (por ejemplo, una compra antigua). Los sellos de ventas se suman solos.</p>
-   <form class="f" onsubmit="return false"><label class="full">Sellos a sumar (usa un número negativo para quitar)<input id="s-n" type="number" step="1" value="1"></label></form><div class="small muted">Ajuste manual actual: ${+t.extra||0}</div><div class="err" id="s-e"></div>
-   <div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pri" id="s-s">Guardar</button></div>`,ov=>{
-    const $=$in(ov);$('s-s').onclick=()=>{const n=Math.trunc(+$('s-n').value||0);if(!n)return $('s-e').textContent='Escribe cuántos sellos sumar o quitar.';
-      save(async()=>{await api.update('tarjetas',id,{extra:(+t.extra||0)+n});syncWallet(id)},n>0?`+${n} ${n===1?'sello':'sellos'}`:`${n} sellos`,$('s-e'))};
+  const t=S.tarj.find(x=>x.id===id);const P=calc();const D=detalleSellos(t,P);const aj=t.ajustes||[];
+  const fila=f=>`<div class="item"><div><b>${fdate(f.fecha)}</b><div class="small muted">${f.ms.map(m=>`${m.tipo==='Devolución'?'Devolución: ':''}${esc(P[m.codigo]?.nombre||m.codigo)}${+m.cant>1?' ×'+m.cant:''}${m.pack?' (pack '+esc(P[m.pack]?.nombre||m.pack)+')':''}`).join(' · ')}</div></div><b style="white-space:nowrap">${f.sellos>0?'+':''}${f.sellos} ${Math.abs(f.sellos)===1?'sello':'sellos'}</b></div>`;
+  open(`<h3>Sellos de ${esc(t.nombre)}</h3>
+   <p class="small muted" style="margin-top:-4px">Regla actual: ${D.modo==='compra'?'1 sello por compra (por día), aunque lleve varios perfumes':'1 sello por cada perfume o set comprado'}. ${t.desde?'Cuenta ventas desde el '+fdate(t.desde)+'.':'Cuenta todas sus compras, también las anteriores a la tarjeta.'}</p>
+   <div class="box" style="padding:10px 14px;margin:10px 0"><div class="small muted" style="font-weight:600;letter-spacing:.06em">VENTAS CON SU CELULAR ${esc(t.telefono||'')}</div>
+    ${D.filas.length?D.filas.map(fila).join(''):'<div class="small muted" style="padding:8px 0">No hay ventas con este celular.</div>'}
+    ${aj.length||D.extra?`<div class="small muted" style="font-weight:600;letter-spacing:.06em;margin-top:10px">AJUSTES A MANO</div>${aj.map(a=>`<div class="item"><div>${fdate(a.fecha)}<div class="small muted">${esc(a.motivo||'Sin motivo')}${who(a.por)?' · '+esc(who(a.por)):''}</div></div><b>${a.n>0?'+':''}${a.n}</b></div>`).join('')}${D.extra!==aj.reduce((x,a)=>x+(+a.n||0),0)?`<div class="item"><div class="small muted">Ajustes anteriores</div><b>${D.extra-aj.reduce((x,a)=>x+(+a.n||0),0)}</b></div>`:''}`:''}
+    <div class="item" style="border-top:1px solid var(--line);margin-top:6px"><b>Total</b><b>${D.total} ${D.total===1?'sello':'sellos'}</b></div></div>
+   <p class="small muted">Si algo no cuadra, revisa la venta en <b>Ventas</b> (cantidad, celular o venta repetida) y corrígela ahí: los sellos se recalculan solos. Si solo quieres ajustar la tarjeta, usa los botones de abajo. <b>El cliente no recibe ningún aviso.</b></p>
+   <form class="f" onsubmit="return false"><label class="full">Motivo (para que tu socio sepa por qué)<input id="s-m" placeholder="Ej. venta registrada dos veces" maxlength="120"></label></form><div class="err" id="s-e"></div>
+   <div class="acts"><button class="btn" data-x>Cerrar</button><button class="btn danger" id="s-q"${D.total<=0?' disabled':''}>Quitar 1 sello</button><button class="btn pri" id="s-a">Sumar 1 sello</button></div>`,ov=>{
+    const $=$in(ov);
+    const go=n=>{const motivo=$('s-m').value.trim();if(!motivo)return $('s-e').textContent='Escribe el motivo del ajuste.';
+      save(async()=>{await api.update('tarjetas',id,{extra:(+t.extra||0)+n,ajustes:[...aj,{fecha:today(),n,motivo,por:S.email}]});syncWallet(id)},n>0?'Sello sumado':'Sello quitado',$('s-e'))};
+    $('s-q').onclick=()=>go(-1);$('s-a').onclick=()=>go(1);
   });
 }
 function formCanje(id,en){
@@ -365,7 +387,8 @@ function formCanje(id,en){
 }
 function formReglas(){
   const R=reglas();
-  open(`<h3>Reglas de la tarjeta</h3><p class="small muted">Cada perfume o set comprado = 1 sello. Si cambias las reglas, se aplican a todos los clientes al instante.</p><form class="f" onsubmit="return false">
+  open(`<h3>Reglas de la tarjeta</h3><p class="small muted">Si cambias las reglas, se recalculan los sellos de todos los clientes al instante.</p><form class="f" onsubmit="return false">
+   <label class="full">Cómo se ganan los sellos<select id="r-mo"><option value="compra"${R.modo==='compra'?' selected':''}>1 sello por compra (aunque lleve varios perfumes)</option><option value="perfume"${R.modo==='perfume'?' selected':''}>1 sello por cada perfume o set</option></select></label>
    <label class="full">Sellos para completar la tarjeta<input id="r-m" type="number" min="2" max="12" value="${R.meta}"></label>
    ${[0,1,2].map(i=>`<label>Premio ${i+1}: al sello n.º<input id="r-e${i}" type="number" min="1" max="12" value="${R.premios[i]?.en||''}"></label><label>Premio ${i+1}<input id="r-p${i}" value="${esc(R.premios[i]?.premio||'')}" placeholder="${i===2?'Opcional':''}"></label>`).join('')}
    </form><div class="err" id="r-e"></div><div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pri" id="r-s">Guardar reglas</button></div>`,ov=>{
@@ -375,7 +398,7 @@ function formReglas(){
       if(premios.some(p=>p.en>meta))return $('r-e').textContent=`Ningún premio puede estar después del sello ${meta}.`;
       if(!premios.some(p=>p.en===meta))return $('r-e').textContent=`El último premio debe estar en el sello ${meta} (al completar la tarjeta).`;
       if(new Set(premios.map(p=>p.en)).size<premios.length)return $('r-e').textContent='Dos premios no pueden estar en el mismo sello.';
-      save(async()=>{await api.set('ajustes','fidelidad',{meta,premios:premios.sort((a,b)=>a.en-b.en)});S.tarj.forEach(t=>syncWallet(t.id))},'Reglas guardadas',$('r-e'))};
+      save(async()=>{await api.set('ajustes','fidelidad',{meta,modo:$('r-mo').value,premios:premios.sort((a,b)=>a.en-b.en)});S.tarj.forEach(t=>syncWallet(t.id))},'Reglas guardadas',$('r-e'))};
   });
 }
 
@@ -471,13 +494,13 @@ function formVenta(){
         const docs=cs.map((x,i)=>{const sh=x.pr*x.q/W;const tt=r2(t*sh);const pp=r2(pa*sh);return{fecha:f,tipo:'Venta',codigo:x.codigo,cant:x.q,precio:r2(tt/x.q),descuento:0,total:tt,costoUnit:r2(P[x.codigo].costo),
           cliente:$('v-cl').value.trim(),telefono:$('v-tel').value.trim(),canal:$('v-ca').value,pago:$('v-pg').value,cobros:pp>0?[{fecha:f,monto:pp,metodo,recibio:$('v-rc').value}]:[],pagado:pp,
           notas:[p.nombre+(c>1?' ×'+c:''),$('v-n').value.trim()].filter(Boolean).join(' · '),pack:p.id,creado:Date.now()+i,por:S.email}});
-        const ts=tarjetaDe($('v-tel').value),ns=docs.filter(d=>cuentaSello(P[d.codigo])).reduce((a,d)=>a+d.cant,0);
-        return save(async()=>{for(const d of docs)await api.add('movimientos',d);if(ts&&ns)syncWallet(ts.id)},'Venta del pack guardada'+(ts&&ns?` · +${ns} ${ns===1?'sello':'sellos'} en la tarjeta de ${ts.nombre.split(' ')[0]}`:''),$('v-e'))}
+        const ns=docs.filter(d=>cuentaSello(P[d.codigo])).reduce((a,d)=>a+d.cant,0),sx=sellosNuevos($('v-tel').value,docs[0]?.fecha,ns,P),ts=sx&&sx.t;
+        return save(async()=>{for(const d of docs)await api.add('movimientos',d);if(ts&&ns)syncWallet(ts.id)},'Venta del pack guardada'+msgSellos(sx),$('v-e'))}
       const doc={fecha:f,tipo:'Venta',codigo:p.id,cant:c,precio:+$('v-pr').value||0,descuento:+$('v-d').value||0,total:t,costoUnit:r2(p.costo),
         cliente:$('v-cl').value.trim(),telefono:$('v-tel').value.trim(),canal:$('v-ca').value,pago:$('v-pg').value,
         cobros:pa>0?[{fecha:f,monto:pa,metodo,recibio:$('v-rc').value}]:[],pagado:pa,notas:$('v-n').value.trim(),creado:Date.now(),por:S.email};
-      const ts=tarjetaDe(doc.telefono);
-      save(async()=>{await api.add('movimientos',doc);if(ts&&cuentaSello(p))syncWallet(ts.id)},'Venta guardada'+(ts&&cuentaSello(p)?` · +${c} ${c===1?'sello':'sellos'} en la tarjeta de ${ts.nombre.split(' ')[0]}`:''),$('v-e'))};
+      const sx=cuentaSello(p)?sellosNuevos(doc.telefono,doc.fecha,c,P):null,ts=sx&&sx.t;
+      save(async()=>{await api.add('movimientos',doc);if(ts)syncWallet(ts.id)},'Venta guardada'+msgSellos(sx),$('v-e'))};
   });
 }
 function formEditMov(id){

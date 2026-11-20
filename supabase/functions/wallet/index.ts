@@ -14,7 +14,7 @@ const API = "https://walletobjects.googleapis.com/walletobjects/v1";
 const CLASS_SUFFIX = "tarjeta_noor";
 
 type Premio = { en: number; premio: string };
-type Reglas = { meta?: number; premios?: Premio[] };
+type Reglas = { meta?: number; modo?: string; premios?: Premio[] };
 type Canje = { ciclo?: number; en?: number; premio?: string; fecha?: string };
 type Tarjeta = { nombre?: string; desde?: string; sellos?: number; canjes?: Canje[]; reglas?: Reglas };
 
@@ -87,7 +87,7 @@ export function buildObject(issuer: string, code: string, T: Tarjeta) {
     barcode: { type: "QR_CODE", value: link, alternateText: code },
     textModulesData: [
       { id: "estado", header: e.listos.length ? "Tienes un premio" : "Tu próximo premio", body: premioTxt },
-      { id: "reglas", header: "Cómo funciona", body: `Cada perfume o set que compras suma 1 sello. ${e.premios.map((p) => `${p.en} sellos: ${p.premio}`).join(". ")}.` },
+      { id: "reglas", header: "Cómo funciona", body: `${T.reglas?.modo === "compra" ? "Cada compra" : "Cada perfume o set que compras"} suma 1 sello. ${e.premios.map((p) => `${p.en} sellos: ${p.premio}`).join(". ")}.` },
     ],
     linksModuleData: { uris: [
       { id: "tarjeta", uri: link, description: "Ver mi tarjeta" },
@@ -126,7 +126,11 @@ Deno.serve(async (req) => {
     if (cur.ok) {
       // Ya la tiene guardada: la actualizamos y, si cambiaron los sellos o hay premio nuevo, Google le avisa
       const old = await cur.json();
-      const changed = old?.loyaltyPoints?.balance?.string !== obj.loyaltyPoints.balance.string || (old?.secondaryLoyaltyPoints?.balance?.int ?? 0) !== obj.secondaryLoyaltyPoints.balance.int;
+      // Solo avisa al cliente cuando GANA (más sellos o un premio nuevo). Si los dueños quitan un sello, se actualiza en silencio.
+      const num = (s?: string) => +(String(s ?? "0").split("/")[0]) || 0;
+      const oldCur = num(old?.loyaltyPoints?.balance?.string), newCur = num(obj.loyaltyPoints.balance.string);
+      const oldPrem = old?.secondaryLoyaltyPoints?.balance?.int ?? 0, newPrem = obj.secondaryLoyaltyPoints.balance.int;
+      const changed = newPrem > oldPrem || (newCur > oldCur && newPrem >= oldPrem);
       const up = await fetch(`${API}/loyaltyObject/${encodeURIComponent(obj.id)}`, { method: "PUT", headers: H, body: JSON.stringify({ ...obj, notifyPreference: changed ? "NOTIFY" : "DO_NOT_NOTIFY" }) });
       if (!up.ok) {
         const txt = await up.text();

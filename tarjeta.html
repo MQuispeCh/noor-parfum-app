@@ -144,7 +144,7 @@ function show(T,code){
   let msg;
   if(e.listos.length) msg=`¡Felicidades${n?", "+n:""}! Ganaste <b>${esc(e.listos.map(p=>p.premio).join(" + "))}</b>.`;
   else if(e.sig) msg=e.cur===0&&e.ciclo===1
-    ?`Tu tarjeta ya está activa. Con cada perfume que compres sumas un sello: a los <b>${e.sig.en}</b> ganas <b>${esc(e.sig.premio)}</b>.`
+    ?`Tu tarjeta ya está activa. Con cada ${(T.reglas||{}).modo==="compra"?"compra":"perfume que compres"} sumas un sello: a los <b>${e.sig.en}</b> ganas <b>${esc(e.sig.premio)}</b>.`
     :`Te ${e.faltan===1?"falta <b>1 sello</b>":`faltan <b>${e.faltan} sellos</b>`} para <b>${esc(e.sig.premio)}</b>.`;
   else msg="¡Completaste tu tarjeta!";
   const pct=e.sig?Math.round(e.cur/e.sig.en*100):100;
@@ -171,7 +171,7 @@ function show(T,code){
   <h2>Cómo funciona</h2>
   <ul class="how">
     <li><b>1</b><span>Compra en Noor Parfum dando tu número de celular.</span></li>
-    <li><b>2</b><span>Cada perfume o set suma <strong style="color:var(--ivory)">1 sello</strong> aquí, sin que hagas nada.</span></li>
+    <li><b>2</b><span>${(T.reglas||{}).modo==="compra"?"Cada compra":"Cada perfume o set"} suma <strong style="color:var(--ivory)">1 sello</strong> aquí, sin que hagas nada.</span></li>
     <li><b>3</b><span>Al llegar a un regalo, escríbenos y lo usas en tu siguiente compra.</span></li>
   </ul>
   <div class="rules">${e.premios.map(p=>`<strong>${p.en} sellos:</strong> ${esc(p.premio)}`).join("<br>")}<br>Al completar los ${e.meta} sellos empiezas una tarjeta nueva.</div>
