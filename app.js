@@ -293,11 +293,19 @@ const cuentaSello=p=>p&&(p.categoria==='Perfume'||p.categoria==='Set');
 /* Detalle de sellos de una tarjeta: qué ventas los dieron y los ajustes a mano.
    modo "perfume": 1 sello por cada perfume o set · modo "compra": 1 sello por día con compra (aunque lleve varios). Igual que supabase/006. */
 function detalleSellos(t,P){const k=telKey(t.telefono);const modo=reglas().modo;
-  const L=k.length<9?[]:S.mov.filter(m=>(m.tipo==='Venta'||m.tipo==='Devolución')&&telKey(m.telefono)===k&&(m.fecha||'')>=(t.desde||'')&&cuentaSello(P[m.codigo])).sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||''));
+  const L=k.length<9?[]:S.mov.filter(m=>(m.tipo==='Venta'||m.tipo==='Devolución')&&telKey(m.telefono)===k&&(m.fecha||'')>=(t.desde||'')).sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||''));
+  /* Unidades que cuentan: un perfume o set suelto = sus unidades; un pack = 1 por cada pack vendido (aunque traiga 2 perfumes) */
+  const U=[],packs={};
+  for(const m of L){const sg=m.tipo==='Devolución'?-1:1;
+    if(m.pack){const g=packs[m.pack+'|'+m.fecha+'|'+m.tipo]=packs[m.pack+'|'+m.fecha+'|'+m.tipo]||{fecha:m.fecha,ms:[],sg,cuenta:false,n:Infinity};
+      const q=+(P[m.pack]?.componentes||[]).find(c=>c.codigo===m.codigo)?.cant||1;g.ms.push(m);g.n=Math.min(g.n,Math.round((+m.cant||0)/q));if(cuentaSello(P[m.codigo]))g.cuenta=true}
+    else if(cuentaSello(P[m.codigo]))U.push({fecha:m.fecha,ms:[m],uds:sg*(+m.cant||0)})}
+  for(const g of Object.values(packs))if(g.cuenta)U.push({fecha:g.fecha,ms:g.ms,uds:g.sg*(isFinite(g.n)?g.n:1)});
+  U.sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||''));
   const filas=[];
-  if(modo==='compra'){const byF={};for(const m of L){(byF[m.fecha]=byF[m.fecha]||[]).push(m)}
-    for(const f of Object.keys(byF).sort()){const ms=byF[f];const net=ms.reduce((a,m)=>a+(m.tipo==='Devolución'?-1:1)*(+m.cant||0),0);filas.push({fecha:f,ms,sellos:net>0?1:0})}}
-  else for(const m of L)filas.push({fecha:m.fecha,ms:[m],sellos:(m.tipo==='Devolución'?-1:1)*(+m.cant||0)});
+  if(modo==='compra'){const byF={};for(const u of U)(byF[u.fecha]=byF[u.fecha]||[]).push(u);
+    for(const f of Object.keys(byF).sort()){const us=byF[f];const net=us.reduce((a,u)=>a+u.uds,0);filas.push({fecha:f,ms:us.flatMap(u=>u.ms),sellos:net>0?1:0})}}
+  else for(const u of U)filas.push({fecha:u.fecha,ms:u.ms,sellos:u.uds});
   const ventas=filas.reduce((a,f)=>a+f.sellos,0),extra=+t.extra||0;
   return{filas,ventas,extra,total:Math.max(0,ventas+extra),modo}}
 const sellosDe=(t,P)=>detalleSellos(t,P).total;
@@ -346,7 +354,7 @@ function formTarjeta(id,pre){
    </form><div class="small muted">Los sellos se suman solos cuando registras una venta con este celular.</div><div class="err" id="t-e"></div>
    <div class="acts">${t?'<button class="btn danger" id="t-d">Borrar</button>':''}<button class="btn" data-x>Cancelar</button><button class="btn pri" id="t-s">${t?'Guardar':'Crear tarjeta'}</button></div>`,ov=>{
     const $=$in(ov);if(!t)autoTel(ov,'t-n','t-t');
-    const hint=()=>{if(t)return;const k=telKey($('t-t').value);const n=k.length===9?S.mov.filter(m=>m.tipo==='Venta'&&telKey(m.telefono)===k&&cuentaSello(P[m.codigo])).reduce((a,m)=>a+(+m.cant||0),0):0;$('t-ah').textContent=n?`(${n} ${n===1?'sello':'sellos'})`:''};
+    const hint=()=>{if(t)return;const k=telKey($('t-t').value);const n=k.length===9?detalleSellos({telefono:$('t-t').value,desde:'',extra:0},P).total:0;$('t-ah').textContent=n?`(${n} ${n===1?'sello':'sellos'})`:''};
     if(!t){$('t-t').addEventListener('input',hint);$('t-n').addEventListener('change',()=>setTimeout(hint));hint()}
     if(t)$('t-d').onclick=()=>confirmDel('tarjetas',t.id,`Tarjeta de ${t.nombre}. El cliente ya no podrá ver sus sellos con su link.`);
     $('t-s').onclick=()=>{const nom=$('t-n').value.trim(),tel=$('t-t').value.trim();
@@ -360,9 +368,10 @@ function formTarjeta(id,pre){
 }
 function formSellos(id){
   const t=S.tarj.find(x=>x.id===id);const P=calc();const D=detalleSellos(t,P);const aj=t.ajustes||[];
-  const fila=f=>`<div class="item"><div><b>${fdate(f.fecha)}</b><div class="small muted">${f.ms.map(m=>`${m.tipo==='Devolución'?'Devolución: ':''}${esc(P[m.codigo]?.nombre||m.codigo)}${+m.cant>1?' ×'+m.cant:''}${m.pack?' (pack '+esc(P[m.pack]?.nombre||m.pack)+')':''}`).join(' · ')}</div></div><b style="white-space:nowrap">${f.sellos>0?'+':''}${f.sellos} ${Math.abs(f.sellos)===1?'sello':'sellos'}</b></div>`;
+  const desc=ms=>{const out=[],vistos=new Set();for(const m of ms){const d=m.tipo==='Devolución'?'Devolución: ':'';if(m.pack){if(vistos.has(m.pack+m.tipo))continue;vistos.add(m.pack+m.tipo);out.push(d+'Pack '+esc(P[m.pack]?.nombre||m.pack))}else out.push(d+esc(P[m.codigo]?.nombre||m.codigo)+(+m.cant>1?' ×'+m.cant:''))}return out.join(' · ')};
+  const fila=f=>`<div class="item"><div><b>${fdate(f.fecha)}</b><div class="small muted">${desc(f.ms)}</div></div><b style="white-space:nowrap">${f.sellos>0?'+':''}${f.sellos} ${Math.abs(f.sellos)===1?'sello':'sellos'}</b></div>`;
   open(`<h3>Sellos de ${esc(t.nombre)}</h3>
-   <p class="small muted" style="margin-top:-4px">Regla actual: ${D.modo==='compra'?'1 sello por compra (por día), aunque lleve varios perfumes':'1 sello por cada perfume o set comprado'}. ${t.desde?'Cuenta ventas desde el '+fdate(t.desde)+'.':'Cuenta todas sus compras, también las anteriores a la tarjeta.'}</p>
+   <p class="small muted" style="margin-top:-4px">Regla actual: ${D.modo==='compra'?'1 sello por compra (por día), aunque lleve varios perfumes':'1 sello por cada perfume o set; un pack cuenta como 1'}. ${t.desde?'Cuenta ventas desde el '+fdate(t.desde)+'.':'Cuenta todas sus compras, también las anteriores a la tarjeta.'}</p>
    <div class="box" style="padding:10px 14px;margin:10px 0"><div class="small muted" style="font-weight:600;letter-spacing:.06em">VENTAS CON SU CELULAR ${esc(t.telefono||'')}</div>
     ${D.filas.length?D.filas.map(fila).join(''):'<div class="small muted" style="padding:8px 0">No hay ventas con este celular.</div>'}
     ${aj.length||D.extra?`<div class="small muted" style="font-weight:600;letter-spacing:.06em;margin-top:10px">AJUSTES A MANO</div>${aj.map(a=>`<div class="item"><div>${fdate(a.fecha)}<div class="small muted">${esc(a.motivo||'Sin motivo')}${who(a.por)?' · '+esc(who(a.por)):''}</div></div><b>${a.n>0?'+':''}${a.n}</b></div>`).join('')}${D.extra!==aj.reduce((x,a)=>x+(+a.n||0),0)?`<div class="item"><div class="small muted">Ajustes anteriores</div><b>${D.extra-aj.reduce((x,a)=>x+(+a.n||0),0)}</b></div>`:''}`:''}
@@ -388,7 +397,7 @@ function formCanje(id,en){
 function formReglas(){
   const R=reglas();
   open(`<h3>Reglas de la tarjeta</h3><p class="small muted">Si cambias las reglas, se recalculan los sellos de todos los clientes al instante.</p><form class="f" onsubmit="return false">
-   <label class="full">Cómo se ganan los sellos<select id="r-mo"><option value="compra"${R.modo==='compra'?' selected':''}>1 sello por compra (aunque lleve varios perfumes)</option><option value="perfume"${R.modo==='perfume'?' selected':''}>1 sello por cada perfume o set</option></select></label>
+   <label class="full">Cómo se ganan los sellos<select id="r-mo"><option value="compra"${R.modo==='compra'?' selected':''}>1 sello por compra (aunque lleve varios perfumes)</option><option value="perfume"${R.modo==='perfume'?' selected':''}>1 sello por cada perfume, set o pack</option></select></label>
    <label class="full">Sellos para completar la tarjeta<input id="r-m" type="number" min="2" max="12" value="${R.meta}"></label>
    ${[0,1,2].map(i=>`<label>Premio ${i+1}: al sello n.º<input id="r-e${i}" type="number" min="1" max="12" value="${R.premios[i]?.en||''}"></label><label>Premio ${i+1}<input id="r-p${i}" value="${esc(R.premios[i]?.premio||'')}" placeholder="${i===2?'Opcional':''}"></label>`).join('')}
    </form><div class="err" id="r-e"></div><div class="acts"><button class="btn" data-x>Cancelar</button><button class="btn pri" id="r-s">Guardar reglas</button></div>`,ov=>{
@@ -494,7 +503,7 @@ function formVenta(){
         const docs=cs.map((x,i)=>{const sh=x.pr*x.q/W;const tt=r2(t*sh);const pp=r2(pa*sh);return{fecha:f,tipo:'Venta',codigo:x.codigo,cant:x.q,precio:r2(tt/x.q),descuento:0,total:tt,costoUnit:r2(P[x.codigo].costo),
           cliente:$('v-cl').value.trim(),telefono:$('v-tel').value.trim(),canal:$('v-ca').value,pago:$('v-pg').value,cobros:pp>0?[{fecha:f,monto:pp,metodo,recibio:$('v-rc').value}]:[],pagado:pp,
           notas:[p.nombre+(c>1?' ×'+c:''),$('v-n').value.trim()].filter(Boolean).join(' · '),pack:p.id,creado:Date.now()+i,por:S.email}});
-        const ns=docs.filter(d=>cuentaSello(P[d.codigo])).reduce((a,d)=>a+d.cant,0),sx=sellosNuevos($('v-tel').value,docs[0]?.fecha,ns,P),ts=sx&&sx.t;
+        const ns=docs.some(d=>cuentaSello(P[d.codigo]))?c:0,sx=sellosNuevos($('v-tel').value,docs[0]?.fecha,ns,P),ts=sx&&sx.t;
         return save(async()=>{for(const d of docs)await api.add('movimientos',d);if(ts&&ns)syncWallet(ts.id)},'Venta del pack guardada'+msgSellos(sx),$('v-e'))}
       const doc={fecha:f,tipo:'Venta',codigo:p.id,cant:c,precio:+$('v-pr').value||0,descuento:+$('v-d').value||0,total:t,costoUnit:r2(p.costo),
         cliente:$('v-cl').value.trim(),telefono:$('v-tel').value.trim(),canal:$('v-ca').value,pago:$('v-pg').value,
